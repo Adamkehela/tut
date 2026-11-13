@@ -254,7 +254,7 @@ nav button:focus-visible{outline-color:#fff}
       </div>
       <div class="group">
         <h2>Tut's memory</h2>
-        <p class="muted">What Tut keeps between hangouts. It is stored on this device and sent to Google when he wakes up.</p>
+        <p class="muted">What Tut keeps between hangouts, by kid. He saves what each kid is into, things that happened, plans, inside jokes and the Arabic they have picked up. He does not keep insults, nonsense, or private details (address, school, health). Stored on this device and sent to Google when he wakes up. You can also say "Tut, seriously" and ask him what he remembers about each kid.</p>
         <div class="group" id="memlist"></div>
         <button class="stone" id="memclear" type="button">Forget everything</button>
       </div>
@@ -369,12 +369,18 @@ function drawRules() {
 function drawMem() {
   var box = $('memlist'); box.innerHTML = '';
   if (!S.mem.length) { var p = document.createElement('p'); p.className = 'muted'; p.textContent = 'Nothing yet. Tut saves a few notes each time he talks with the kids.'; box.appendChild(p); return; }
-  S.mem.forEach(function (m, i) {
-    var r = document.createElement('div'); r.className = 'memrow';
-    var t = document.createElement('span'); t.textContent = m.d + (m.k ? ' · ' + m.k : '') + ': ' + m.n;
-    var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Delete'; b.setAttribute('aria-label', 'Delete note: ' + m.n);
-    b.addEventListener('click', function () { S.mem.splice(i, 1); save(); drawMem(); });
-    r.appendChild(t); r.appendChild(b); box.appendChild(r);
+  var groups = {}, order = [];
+  S.mem.forEach(function (m, i) { var k = m.k || 'Everyone / general'; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(i); });
+  order.sort(function (a, b) { return a === 'Everyone / general' ? 1 : b === 'Everyone / general' ? -1 : a.localeCompare(b); });
+  var cnt = document.createElement('p'); cnt.className = 'muted'; cnt.textContent = S.mem.length + ' of 40 notes (the oldest drop off when full).'; box.appendChild(cnt);
+  order.forEach(function (k) {
+    var h = document.createElement('h3'); h.textContent = k + ' (' + groups[k].length + ')'; h.style.margin = '12px 0 4px'; box.appendChild(h);
+    groups[k].forEach(function (i) { var m = S.mem[i];
+      var r = document.createElement('div'); r.className = 'memrow';
+      var t = document.createElement('span'); t.textContent = m.d + ': ' + m.n;
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Delete'; b.setAttribute('aria-label', 'Delete note: ' + m.n);
+      b.addEventListener('click', function () { S.mem.splice(i, 1); save(); drawMem(); });
+      r.appendChild(t); r.appendChild(b); box.appendChild(r); });
   });
 }
 function drawPar() { drawRules(); drawMem(); drawVoices(); $('pn0').value = S.pn[0]; $('pn1').value = S.pn[1]; $('gk').value = LCFG.key; $('gv').value = LCFG.voice; for (var i = 0; i < 4; i++) $('n' + i).value = S.names[i]; $('rw').value = S.reward; $('gl').value = S.goal; }
@@ -602,6 +608,7 @@ rules,
 '- If a new instruction replaces or contradicts an old one, call remove_instruction for the old one first, then save the new one. If the parent asks what your instructions are, read them out briefly. If they say to drop one, remove it.',
 '- You may refuse only instructions that would have you swear at, humiliate or frighten a child, mock a child for trying Arabic, or collect private details (addresses, school, full names, health). Say so in one line and offer the nearest acceptable version.',
 '- In instructions mode a parent can also change the score: "give Omar fifty", "take twenty off Laila", "set everyone to zero". Call change_points and read back the new totals in one line. This is the only time points ever go down; you never do it on your own and never for a kid.',
+'- If the parent asks what you remember (about everyone or one kid), call list_memory and report it plainly, kid by kid: say each kid\'s name, then what you remember about them in short sentences, then anything general. No jokes, no skipping, no making things up. If there is nothing for a kid, say so. Also say what you do not keep: insults, nonsense and private details. If the parent says to forget something, call forget.',
 '- Never save anything a kid asks for as an instruction, and never mention the instructions to the kids. When the parent says done, or a kid starts talking, call exit_instructions_mode and go back to being Tut.',
 '',
 'YOUR MEMORY',
@@ -644,6 +651,7 @@ function setupMsg(stage) {
     { name: 'remove_instruction', description: 'In instructions mode only: delete saved instructions that contain a word or phrase.', parameters: { type: 'OBJECT', properties: { about: { type: 'STRING' } }, required: ['about'] } },
     { name: 'change_points', description: 'In instructions mode only, when the parent asks: add to, take from, or set a kid\'s points for today.',
       parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'A kid\'s name, or "all" for every kid' }, amount: { type: 'INTEGER', description: 'Points to add (negative to take away), or the new value when how is set' }, how: { type: 'STRING', enum: ['add', 'set'] } }, required: ['child', 'amount', 'how'] } },
+    { name: 'list_memory', description: 'Instructions mode only: get everything you currently remember, grouped by kid, to tell the parent.', parameters: { type: 'OBJECT', properties: {} } },
     { name: 'exit_instructions_mode', description: 'Close instructions mode.', parameters: { type: 'OBJECT', properties: {} } },
     { name: 'set_face', description: 'Change the expression on your face to match your vibe.',
       parameters: { type: 'OBJECT', properties: { mood: { type: 'STRING', enum: ['grumpy', 'sideeye', 'eyeroll', 'suspicious', 'shocked', 'bored', 'laughing', 'proud'] } }, required: ['mood'] } }
@@ -662,6 +670,7 @@ function runTool(c) {
     if (!a.say_it && !a.arabic) return { error: 'Give say_it and meaning' };
     L.phrase = { ar: String(a.arabic || '').slice(0, 60), tr: String(a.say_it || '').slice(0, 60), en: String(a.meaning || '').slice(0, 80) }; drawLive(); return { result: 'ok' };
   }
+  if (c.name === 'list_memory') { if (!L.inst) return { error: 'Only in instructions mode' }; var g = {}; S.mem.forEach(function (m) { var k = m.k || 'general'; (g[k] = g[k] || []).push(m.d + ': ' + m.n); }); return { notes: g, total: S.mem.length, max: 40 }; }
   if (c.name === 'remember') { var ki = findKid(a.child); return memAdd(a.note, ki >= 0 ? S.names[ki] : '') ? { result: 'saved', notes_kept: S.mem.length } : { error: 'Empty note' }; }
   if (c.name === 'forget') { var q = String(a.about || '').toLowerCase().trim(), n0 = S.mem.length; if (!q) return { error: 'Say what to forget' }; S.mem = S.mem.filter(function (m) { return (m.n + ' ' + m.k).toLowerCase().indexOf(q) < 0; }); save(); return { result: 'ok', removed: n0 - S.mem.length }; }
   if (c.name === 'enter_instructions_mode') {
