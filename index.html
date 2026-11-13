@@ -842,6 +842,7 @@ function liveConnect() {
     if (L.byUser) { liveStop(''); return; }
     if (!L.ready && L.stage < 4 && !/key|permission|quota|billing|not found|unsupported location/i.test(why)) { L.stage++; liveConnect(); return; }
     if (L.ready && !L.noCC && L.ccT && Date.now() - L.ccT < 4000) { L.noCC = true; L.ready = false; liveConnect(); return; } /* model refused silent notes: reconnect and use the other way */
+    if (!L.ready && /quota|exhausted|billing/i.test(why) && L.stage < 2) { L.stage = 2; L.noSearch = true; liveConnect(); return; } /* free tier may not include web search: start without it */
     if (/quota|exhausted|rate/i.test(why) && L.on && (L.qTries || 0) < 3) { /* Google's per-minute limit: wait and try again by itself */
       L.qTries = (L.qTries || 0) + 1; L.ready = false; lStatus('Tut needs a minute: Google\'s free limit is used up for now. Trying again in 60 seconds...');
       setTimeout(function () { if (L.on) { L.resumed = !!L.handle; liveConnect(); } }, 60000); return; }
