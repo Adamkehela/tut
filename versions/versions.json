@@ -84,7 +84,8 @@
    "Arabic teaching level 0-10 (default 3) in Parents or by voice in instructions mode",
    "Simpler app: no tab bar. One floating, draggable, see-through blue Parents button (like the iPhone AssistiveTouch circle) opens a PIN screen; entering the PIN puts Tut to sleep. 'Save and go back to Tut' button. Old Practice tab replaced by one 'Practice with Tut' button; Favors moved into Parents",
    "Pick Tut's look with pictures at the top of Parents: realistic mummy or the cartoon mummy from v2",
-   "Fix: PIN, teaching level, voice samples and look are now kept after the app restarts"
+   "Fix: PIN, teaching level, voice samples and look are now kept after the app restarts",
+   "Practice button fixed: Tut starts the word challenge out loud right away (also when he was asleep)"
   ],
   "note": "Needs a Google Gemini key in Parents."
  }

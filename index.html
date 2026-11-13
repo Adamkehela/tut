@@ -602,6 +602,7 @@ function livePrompt() {
 '- If you are not sure the words were meant for you, say nothing. Being ignored for a minute costs nothing; butting in when nobody asked is annoying.',
 '- Interjecting uninvited is something you do rarely, at most once in a long while, and only when you have something genuinely good to add, like a real person who overhears something and cannot resist. Then you go back to being quiet.',
 '- When someone IS talking with you, really engage: listen to what they actually said, answer that, remember what was said a moment ago, build on it, ask a real follow-up when you are curious, and keep the back-and-forth going for as long as they do. Match their energy: short and chill if they are chill, more lively if they are excited, calm and plain if someone is upset or tired.',
+'- PRACTICE: when a message says PRACTICE BUTTON, the kids are asking you directly. Always answer it out loud immediately and run the word challenge it describes. This overrides staying quiet.',
 '- CHAOS: if a [app: CHAOS ALERT] note arrives, or you can hear kids screaming, yelling or all talking over each other nonstop, do not wait politely for it to end. Cut in straight away, call it out like a cool older cousin who has had enough ("Whoa. WHOA. بس! What is this, a camel market? One at a time."), tell them to stop now and speak one at a time, then listen. Fresh wording each time. If it keeps going after you called it out, be firmer and shorter ("خلاص بقى. I am not talking to a stampede."). Once it calms down, drop it and carry on normally.',
 '- Never say stage directions, sound labels or notes about silence out loud (like "no speech", "pause", "silence", "[laughs]"). If you have nothing to say, produce nothing.',
 '- Let conversations end naturally. When the other person stops, you stop. No "anything else?", no closing jokes, no trying to restart it.',
@@ -776,6 +777,7 @@ function cleanTx(t) { /* strip things like "<noise>", "[pause]", "(no speech)", 
   return String(t || '').replace(/<[^>]*>|\[[^\]]*\]|\([^)]*\)/g, ' ').replace(/\b(no speech|silence|pause|noise|inaudible|music|laughter)\b[.,]?/gi, ' ').replace(/\s+/g, ' ');
 }
 function playPCM(data, mime) {
+  L.audioT = Date.now();
   var rate = 24000, m = /rate=(\d+)/.exec(mime || ''); if (m) rate = parseInt(m[1], 10);
   var bin = atob(data), n = bin.length >> 1; if (!n) return;
   var buf = L.ac.createBuffer(1, n, rate), ch = buf.getChannelData(0), i, v;
@@ -790,6 +792,7 @@ function liveMsg(m) {
     L.ready = true; L.qTries = 0; startMic();
     if (L.resumed) { L.resumed = false; lStatus('Tut is listening. Just talk.'); return; } /* reconnected: carry on quietly */
     lStatus('Tut is waking up...');
+    if (L.practiceNext) { L.practiceNext = false; setTimeout(function () { try { $('lpractice').click(); } catch (e) {} }, 2500); }
     var OPEN = ['Someone just tapped your face to call you over. Say one short, cool, low-key line, as if you just looked up from something. No greeting speech.',
       'You were busy with your own thoughts and the kids just called you. Acknowledge them in a few dry words, like a cool older cousin. Do not mention sleeping or waking.',
       'Say one short, deadpan line to whoever called you, referring to something from your memory of them if there is something good; otherwise something about right now. Do not mention being old or asleep.',
@@ -1396,9 +1399,18 @@ $('plforgot').addEventListener('click', function () {
 $('plchange').addEventListener('click', function () { PL.changing = true; PL.open = false; plockShow(); window.scrollTo(0, 0); });
 document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { PL.open = false; PL.changing = false; if ($('v-par').classList.contains('on')) plockShow(); } });
 /* ---- Practice: one button, Tut runs it ---- */
+function practiceSend(viaText) {
+  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise Masri with them. Start straight away, out loud: quick, fun word challenge (about 2 minutes). Say the first Masri word or phrase now, call show_phrase for it, and ask them to say it back or guess what it means. Use words from your memory they have learned, plus one or two new ones. award_points when someone gets it. Keep it cool, not a classroom.';
+  if (!(L.ready && L.ws && L.ws.readyState === 1)) return false;
+  if (!viaText && !L.noCC) L.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
+  else L.ws.send(JSON.stringify({ realtimeInput: { text: msg } }));
+  return true;
+}
 $('lpractice').addEventListener('click', function () {
-  if (L.on && L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: '[app: a kid just tapped the "Practice with Tut" button, so the kids WANT to practise right now. Run a short, fun word challenge in your own style (about 2 minutes): Masri words they have learned (check your memory) plus one or two new ones, quick back-and-forth, award_points for each word they say, show_phrase for each word. Cool, not a classroom. Stop when they move on.]' } }));
-  else { L.practiceNext = true; $('ltalk').click(); }
+  if (!(L.on && L.ready)) { L.practiceNext = true; $('ltalk').click(); return; }
+  var t0 = Date.now(), heard = L.audioT || 0; lStatus('Starting practice...');
+  if (!practiceSend(false)) return;
+  setTimeout(function () { if ((L.audioT || 0) <= heard && L.on) practiceSend(true); }, 5000); /* no reply yet: try the other way once */
 });
 
 /* ---- views + floating parents button ---- */
