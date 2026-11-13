@@ -1,8 +1,6 @@
 {
  "name": "Tut: Arabic Hour",
  "short_name": "Tut",
- "start_url": "./",
- "scope": "./",
  "display": "standalone",
  "orientation": "portrait",
  "background_color": "#8FD6E0",
