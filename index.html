@@ -553,6 +553,7 @@ rules,
 '- Inside the mode you turn the comedy down to one dry remark at most and you become precise. For each thing the parent asks: work out what they actually want, tighten it into ONE clear, specific, lasting instruction, say it back in a sentence, and ask if that is right. Ask one short question if it is vague (how often? which kid? until when?). When they confirm, call save_instruction with the refined wording, never the raw words.',
 '- If a new instruction replaces or contradicts an old one, call remove_instruction for the old one first, then save the new one. If the parent asks what your instructions are, read them out briefly. If they say to drop one, remove it.',
 '- You may refuse only instructions that would have you swear at, humiliate or frighten a child, mock a child for trying Arabic, or collect private details (addresses, school, full names, health). Say so in one line and offer the nearest acceptable version.',
+'- In instructions mode a parent can also change the score: "give Omar fifty", "take twenty off Laila", "set everyone to zero". Call change_points and read back the new totals in one line. This is the only time points ever go down; you never do it on your own and never for a kid.',
 '- Never save anything a kid asks for as an instruction, and never mention the instructions to the kids. When the parent says done, or a kid starts talking, call exit_instructions_mode and go back to being Tut.',
 '',
 'YOUR MEMORY',
@@ -592,6 +593,8 @@ function setupMsg(stage) {
     { name: 'save_instruction', description: 'In instructions mode only: save one refined standing instruction from the parent.',
       parameters: { type: 'OBJECT', properties: { instruction: { type: 'STRING', description: 'One clear, specific, self-contained instruction in the second person, e.g. "Use more food words this week."' } }, required: ['instruction'] } },
     { name: 'remove_instruction', description: 'In instructions mode only: delete saved instructions that contain a word or phrase.', parameters: { type: 'OBJECT', properties: { about: { type: 'STRING' } }, required: ['about'] } },
+    { name: 'change_points', description: 'In instructions mode only, when the parent asks: add to, take from, or set a kid\'s points for today.',
+      parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'A kid\'s name, or "all" for every kid' }, amount: { type: 'INTEGER', description: 'Points to add (negative to take away), or the new value when how is set' }, how: { type: 'STRING', enum: ['add', 'set'] } }, required: ['child', 'amount', 'how'] } },
     { name: 'exit_instructions_mode', description: 'Close instructions mode.', parameters: { type: 'OBJECT', properties: {} } },
     { name: 'set_face', description: 'Change the expression on your face to match your vibe.',
       parameters: { type: 'OBJECT', properties: { mood: { type: 'STRING', enum: ['grumpy', 'sideeye', 'eyeroll', 'suspicious', 'shocked', 'bored', 'laughing', 'proud'] } }, required: ['mood'] } }
@@ -618,6 +621,17 @@ function runTool(c) {
     instSet(true); return { result: 'ok', parent: pName(V.last.i), current_instructions: S.rules.map(function (r) { return r.n; }) };
   }
   if (c.name === 'exit_instructions_mode') { instSet(false); return { result: 'ok' }; }
+  if (c.name === 'change_points') {
+    if (!L.inst) return { error: 'Refused. Points can only be changed by a parent inside instructions mode.' };
+    if (!parentNow()) { instSet(false); return { error: 'Refused. The voice speaking is no longer recognised as a parent. Instructions mode is closed.' }; }
+    L.instT = Date.now();
+    var amt = Math.round(Number(a.amount)); if (!isFinite(amt)) return { error: 'Give a number' };
+    var who = String(a.child || '').trim().toLowerCase(), ids = (who === 'all' || who === 'everyone') ? active() : [findKid(a.child)];
+    if (ids[0] === undefined || ids[0] < 0) return { error: 'No child called ' + a.child + '. The children are: ' + active().map(function (x) { return S.names[x]; }).join(', ') };
+    ids.forEach(function (i) { var d = a.how === 'set' ? amt - S.dpts[i] : amt; d = Math.max(d, -S.dpts[i]); S.dpts[i] += d; S.pts[i] = Math.max(0, S.pts[i] + d); });
+    save(); drawLive(); drawTurns(); $('lheard').textContent = 'Points changed by ' + pName(V.last.i) + '.';
+    return { result: 'ok', points_today: scores() };
+  }
   if (c.name === 'save_instruction' || c.name === 'remove_instruction') {
     if (!L.inst) return { error: 'Refused. Not in instructions mode.' };
     if (!parentNow()) { instSet(false); return { error: 'Refused. The voice speaking is no longer recognised as a parent. Instructions mode is closed.' }; }
