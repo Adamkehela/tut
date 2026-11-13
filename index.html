@@ -154,6 +154,13 @@ nav button:focus-visible{outline-color:#fff}
 #pslide input{position:absolute;left:0;top:0;width:1px;height:1px;margin:0;opacity:0;pointer-events:none}
 #pslide:focus-within{outline:3px solid var(--lapis);outline-offset:3px}
 html,body{overscroll-behavior-x:none}
+main{padding-bottom:0!important}
+#v-par{padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+body.livefit{overflow:hidden;height:100dvh;position:fixed;inset:0;width:100%}
+body.livefit #v-live{height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+body.livefit #v-live .stage{flex:1 1 auto;min-height:0}
+body.livefit #v-live .facebtn{height:100%!important}
+body.livefit #v-live .under{flex:0 0 auto;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
 #pslide .knob{position:absolute;top:6px;left:6px;will-change:left;width:52px;height:52px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--lapis);pointer-events:none;transition:left .2s}
 #pslide.drag .knob,#pslide.drag .fill{transition:none}
 #pslide.on{background:var(--sun)}
@@ -1498,6 +1505,7 @@ setInterval(function () { if (PR.on && (!L.on || Date.now() - PR.t > 15 * 60000)
 function goView(v) {
   Array.prototype.forEach.call(document.querySelectorAll('.view'), function (x) { x.classList.remove('on'); });
   $('v-' + v).classList.add('on'); $('pfab').hidden = v === 'par';
+  document.body.classList.toggle('livefit', v === 'live');
   if (v === 'par') { plockShow(); } else { PL.open = false; PL.changing = false; drawLive(); }
   window.scrollTo(0, 0);
 }
@@ -1536,6 +1544,8 @@ function drawWords() {
       b.addEventListener('click', function () { delete bk[x]; save(); drawWords(); }); r.appendChild(t); r.appendChild(b); box.appendChild(r); });
   });
 }
+
+document.body.classList.add('livefit');
 
 /* ---- Cartoon skin (from v2), kept in its own scope ---- */
 var CART = (function () {
