@@ -473,6 +473,17 @@ function award(i, pts) {
   rigMood('proud', 4000); L.faceT = Date.now() + 4000;
   $('lheard').textContent = '+' + pts + ' for ' + S.names[i];
 }
+var WAKE = { lock: null, vid: null };
+async function wakeOn() {
+  try { if ('wakeLock' in navigator && !WAKE.lock) { WAKE.lock = await navigator.wakeLock.request('screen'); WAKE.lock.addEventListener('release', function () { WAKE.lock = null; }); } } catch (e) {}
+  try { if (!WAKE.vid) { var v = document.createElement('video'); v.setAttribute('playsinline', ''); v.setAttribute('muted', ''); v.muted = true; v.loop = true;
+      v.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0.01;pointer-events:none;left:0;top:0';
+      v.src = 'data:video/mp4;base64,AAAAHGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAAAAhmcmVlAAAAG21kYXQAAAGzABAHAAABthBgUYI9t+8AAAMNbW9vdgAAAGxtdmhkAAAAAMXMvvrFzL76AAAD6AAAACoAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAABhHRyYWsAAABcdGtoZAAAAAfFzL76xcy++gAAAAEAAAAAAAAAKgAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAIAAAACAAAAAAACRlZHRzAAAAHGVsc3QAAAAAAAAAAQAAACoAAAAAAAEAAAAAAPxtZGlhAAAAIG1kaGQAAAAAxcy++sXMvvoAAAAZAAAAAVXEAAAAAAAtaGRscgAAAAAAAAAAdmlkZQAAAAAAAAAAAAAAAFZpZGVvSGFuZGxlcgAAAACnbWluZgAAABR2bWhkAAAAAQAAAAAAAAAAAAAAJGRpbmYAAAAcZHJlZgAAAAAAAAABAAAADHVybCAAAAABAAAAZ3N0YmwAAAAnc3RzZAAAAAAAAAABAAAAF21wNHYAAAAAAAAAAQAAAAAAAAAAAAAAGHN0dHMAAAAAAAAAAQAAAAEAAAABAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAABAAAAAQAAABRzdHN6AAAAAAAAABMAAAABAAAAFHN0Y28AAAAAAAAAAQAAACwAAABgdWR0YQAAAFhtZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAACtpbHN0AAAAI6l0b28AAAAbZGF0YQAAAAEAAAAATGF2ZjU2LjQwLjEwMQ==';
+      document.body.appendChild(v); WAKE.vid = v; }
+    await WAKE.vid.play(); } catch (e) {}
+}
+function wakeOff() { try { if (WAKE.lock) WAKE.lock.release(); } catch (e) {} WAKE.lock = null; try { if (WAKE.vid) WAKE.vid.pause(); } catch (e) {} }
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && L.on) { wakeOn(); try { L.ac && L.ac.resume(); } catch (e) {} } });
 function lNote(t) { /* silent context: adds to the conversation without making Tut answer */
   if (!(L.ready && L.ws && L.ws.readyState === 1)) return;
   if (L.noCC) { L.ws.send(JSON.stringify({ realtimeInput: { text: '[app note, not a person speaking; never answer it out loud] ' + t } })); return; }
@@ -617,7 +628,7 @@ function setupMsg(stage) {
   var m = { model: 'models/' + LCFG.model,
     generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: LCFG.voice } } } },
     systemInstruction: { parts: [{ text: livePrompt() }] } };
-  if (stage < 1) m.proactivity = { proactiveAudio: true };
+  if (stage < 1) { m.proactivity = { proactiveAudio: true }; m.sessionResumption = L.handle ? { handle: L.handle } : {}; m.contextWindowCompression = { slidingWindow: {} }; }
   if (stage < 3) { m.outputAudioTranscription = {}; m.inputAudioTranscription = {}; }
   if (stage < 2) m.tools = [{ functionDeclarations: [
     { name: 'award_points', description: 'Give points to one child who just used Egyptian Arabic in the conversation. Returns every child\'s points for today.',
@@ -706,7 +717,9 @@ function playPCM(data, mime) {
 function hush() { L.playing.forEach(function (s) { try { s.onended = null; s.stop(); } catch (e) {} }); L.playing = []; L.nextT = 0; }
 function liveMsg(m) {
   if (m.setupComplete) {
-    L.ready = true; lStatus('Tut is waking up...'); startMic();
+    L.ready = true; startMic();
+    if (L.resumed) { L.resumed = false; lStatus('Tut is listening. Just talk.'); return; } /* reconnected: carry on quietly */
+    lStatus('Tut is waking up...');
     var OPEN = ['Someone just tapped your face to call you over. Say one short, cool, low-key line, as if you just looked up from something. No greeting speech.',
       'You were busy with your own thoughts and the kids just called you. Acknowledge them in a few dry words, like a cool older cousin. Do not mention sleeping or waking.',
       'Say one short, deadpan line to whoever called you, referring to something from your memory of them if there is something good; otherwise something about right now. Do not mention being old or asleep.',
@@ -720,7 +733,9 @@ function liveMsg(m) {
     var rs = m.toolCall.functionCalls.map(function (c) { var r; try { r = runTool(c); } catch (e) { r = { error: String(e.message || e) }; } return { id: c.id, name: c.name, response: r }; });
     L.ws.send(JSON.stringify({ toolResponse: { functionResponses: rs } })); return;
   }
-  if (m.goAway) { $('lheard').textContent = 'Tut is getting sleepy. He will need waking again soon.'; }
+  if (m.sessionResumptionUpdate && m.sessionResumptionUpdate.resumable && m.sessionResumptionUpdate.newHandle) L.handle = m.sessionResumptionUpdate.newHandle;
+  if (m.goAway) { L.goAway = true; return; }
+  if (false) { $('lheard').textContent = 'Tut is getting sleepy. He will need waking again soon.'; }
   var sc = m.serverContent; if (!sc) return;
   if (sc.interrupted) { hush(); L.newTurn = true; }
   if (sc.inputTranscription && sc.inputTranscription.text) { L.heard += sc.inputTranscription.text; $('lheard').textContent = 'Tut heard: ' + L.heard.trim().slice(-90); }
@@ -766,6 +781,8 @@ function liveConnect() {
     if (!L.ready && L.stage < 3 && !/key|permission|quota|billing|not found|unsupported location/i.test(why)) { L.stage++; liveConnect(); return; }
     if (L.ready && !L.noCC && L.ccT && Date.now() - L.ccT < 4000) { L.noCC = true; L.ready = false; liveConnect(); return; } /* model refused silent notes: reconnect and use the other way */
     if (!L.ready) liveStop('Google would not start Tut.\n' + (why || 'No reason given (code ' + ev.code + '). Check the internet connection and the key in Parents.'));
+    else if (L.on && (L.reconT || 0) < Date.now() - 20000 || (L.on && L.goAway)) { /* Google ends sessions after a while: reconnect silently and keep going */
+      L.reconT = Date.now(); L.goAway = false; L.ready = false; L.resumed = true; if (L.stage > 0 && !L.handle) L.resumed = true; lStatus('Tut is listening. Just talk.'); setTimeout(function () { if (L.on) liveConnect(); }, 400); }
     else liveStop('Tut went back to sleep' + (why ? ' (' + why + ')' : '') + '. Tap his face to wake him.');
   };
 }
@@ -775,7 +792,8 @@ async function liveStart() {
   if (!active().length) { lErr('Add at least one child in Parents.'); return; }
   if (vHas()) vLoad().catch(function (e) { lErr('Voice recognition could not start: ' + (e.message || e)); });
   if (!window.WebSocket || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { lErr('This browser cannot use the microphone here. Open the app in Edge, Chrome or Safari.'); return; }
-  L.on = true; L.byUser = false; L.stage = 0; L.out = ''; L.heard = ''; L.newTurn = true;
+  wakeOn();
+  L.on = true; L.byUser = false; L.stage = 0; L.handle = null; L.resumed = false; L.out = ''; L.heard = ''; L.newTurn = true;
   $('ltalk').classList.add('live'); $('ltalklbl').textContent = 'Send Tut to sleep'; lStatus('Waking Tut...'); rigMood('shocked', 1500);
   try { L.ac = L.ac || new (window.AudioContext || window.webkitAudioContext)(); await L.ac.resume();
     if (!L.an) { L.outG = L.ac.createGain(); L.an = L.ac.createAnalyser(); L.an.fftSize = 1024; L.an.smoothingTimeConstant = 0.35; L.outG.connect(L.an); L.an.connect(L.ac.destination); } }
@@ -786,6 +804,7 @@ async function liveStart() {
   liveConnect();
 }
 function liveStop(msg) {
+  wakeOff();
   L.on = false; L.ready = false; hush();
   var ws = L.ws; L.ws = null; if (ws) { try { ws.onclose = null; ws.close(); } catch (e) {} }
   if (L.proc) { try { L.proc.onaudioprocess = null; L.src.disconnect(); L.proc.disconnect(); L.mute.disconnect(); } catch (e) {} L.proc = null; L.src = null; }

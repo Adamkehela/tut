@@ -75,7 +75,8 @@
    "Talks like a real person: answers when spoken to, keeps a back-and-forth going, stays quiet when people are talking to each other",
    "Cooler, drier character; jokes are rationed, not in every line",
    "Rotates his jokes: remembers his recent lines and avoids repeating them; 'woke up after 3,000 years' bits used rarely",
-   "Voice-ID notes no longer make him butt in"
+   "Voice-ID notes no longer make him butt in",
+   "Screen stays on while Tut is awake; long chats reconnect on their own instead of switching off"
   ],
   "note": "Needs a Google Gemini key in Parents."
  }
