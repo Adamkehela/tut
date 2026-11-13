@@ -52,5 +52,17 @@
    "Lips snap shut on m, b and p sounds"
   ],
   "note": "Needs a Google Gemini key in Parents."
+ },
+ {
+  "id": "v5",
+  "name": "Real-mouth Tut",
+  "date": "Nov 13, 2026",
+  "theme": "Dark tomb, realistic dusty little mummy",
+  "functions": [
+   "Everything in v4",
+   "Mouth made from 7 real mouth-shape pictures (closed, ah, ee, oo, oh, f, s)",
+   "The shapes blend smoothly following his voice, like a speaking face"
+  ],
+  "note": "Needs a Google Gemini key in Parents."
  }
 ]
