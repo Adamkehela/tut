@@ -150,6 +150,12 @@ nav button:focus-visible{outline-color:#fff}
 .lerr:empty{display:none}
 [hidden]{display:none!important}
 #lpractice{color:var(--ink);font-weight:800;width:100%}
+#pfab{position:fixed;z-index:50;left:calc(100vw - 72px);top:62vh;width:56px;height:56px;border-radius:50%;border:0;padding:0;
+  background:rgba(30,64,160,.55);box-shadow:0 2px 10px rgba(0,0,0,.35);opacity:.35;transition:opacity .25s,left .2s,top .2s;touch-action:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#pfab span{position:absolute;inset:9px;border-radius:50%;background:rgba(120,160,255,.5);box-shadow:inset 0 0 0 4px rgba(255,255,255,.75)}
+#pfab.act{opacity:1;transition:opacity .1s}
+#pfab:focus-visible{opacity:1;outline:3px solid #fff}
+#pfab.dragging{transition:none}
 </style>
 </head>
 <body>
@@ -214,10 +220,11 @@ nav button:focus-visible{outline-color:#fff}
       <div class="group">
         <h2 id="plh">Parents only</h2>
         <p class="muted" id="plmsg">Enter the parents password.</p>
-        <label for="plpw">Password<input id="plpw" type="password" autocomplete="off"></label>
-        <label for="plpw2" id="plpw2l" hidden>Type it again<input id="plpw2" type="password" autocomplete="off"></label>
+        <label for="plpw">PIN<input id="plpw" type="password" inputmode="numeric" autocomplete="off"></label>
+        <label for="plpw2" id="plpw2l" hidden>Type the PIN again<input id="plpw2" type="password" inputmode="numeric" autocomplete="off"></label>
         <button class="stone" id="plgo" type="button">Open</button>
-        <button class="stone" id="plforgot" type="button">Forgot password</button>
+        <button class="stone" id="plforgot" type="button">Forgot PIN</button>
+        <button class="stone" id="plback" type="button">Back to Tut</button>
         <p class="lerr" id="plerr" role="alert"></p>
       </div>
     </div>
@@ -234,8 +241,8 @@ nav button:focus-visible{outline-color:#fff}
       </div>
     </div>
       <div class="group">
-        <h2>Parents password</h2>
-        <button class="stone" id="plchange" type="button">Change password</button>
+        <h2>Parents PIN</h2>
+        <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
         <h2>Children</h2>
@@ -294,12 +301,10 @@ nav button:focus-visible{outline-color:#fff}
         <p class="muted" id="resetmsg">Points are saved on this phone only.</p>
       </div>
     </div>
+    <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<nav aria-label="Main"><div>
-  <button type="button" data-v="live" aria-current="page">Tut</button>
-  <button type="button" data-v="par">Parents (locked)</button>
-</div></nav>
+<button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -1355,25 +1360,25 @@ async function plHash(t) { var d = await crypto.subtle.digest('SHA-256', new Tex
 function plockShow() {
   var setting = !S.ppw || PL.changing;
   $('pbody').hidden = !PL.open; $('plock').hidden = PL.open; $('plerr').textContent = ''; $('plpw').value = ''; $('plpw2').value = '';
-  $('plh').textContent = setting ? 'Set a parents password' : 'Parents only';
-  $('plmsg').textContent = setting ? 'Choose a password for this screen. Kids will not be able to open Parents without it.' : 'Enter the parents password.';
-  $('plpw2l').hidden = !setting; $('plgo').textContent = setting ? 'Save password' : 'Open'; $('plforgot').hidden = setting;
+  $('plh').textContent = setting ? 'Set a parents PIN' : 'Parents only';
+  $('plmsg').textContent = setting ? 'Choose a PIN (at least 4 digits). Kids will not be able to open Parents without it.' : 'Enter the parents PIN.';
+  $('plpw2l').hidden = !setting; $('plgo').textContent = setting ? 'Save PIN' : 'Open'; $('plforgot').hidden = setting;
 }
 $('plgo').addEventListener('click', async function () {
   var p = $('plpw').value, setting = !S.ppw || PL.changing;
   if (setting) {
-    if (p.length < 4) { $('plerr').textContent = 'Use at least 4 characters.'; return; }
-    if (p !== $('plpw2').value) { $('plerr').textContent = 'The two passwords do not match.'; return; }
-    S.ppw = await plHash(p); save(); PL.changing = false; PL.open = true; plockShow(); return;
+    if (p.length < 4) { $('plerr').textContent = 'Use at least 4 digits.'; return; }
+    if (p !== $('plpw2').value) { $('plerr').textContent = 'The two PINs do not match.'; return; }
+    S.ppw = await plHash(p); save(); PL.changing = false; PL.open = true; plOpened(); plockShow(); return;
   }
-  if (await plHash(p) === S.ppw) { PL.open = true; plockShow(); window.scrollTo(0, 0); } else { $('plerr').textContent = 'Wrong password.'; $('plpw').value = ''; }
+  if (await plHash(p) === S.ppw) { PL.open = true; plOpened(); plockShow(); window.scrollTo(0, 0); } else { $('plerr').textContent = 'Wrong PIN.'; $('plpw').value = ''; }
 });
 $('plpw').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('plgo').click(); });
 $('plpw2').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('plgo').click(); });
 $('plforgot').addEventListener('click', function () {
-  var k = window.prompt('Forgot the password? Paste the Google Gemini key saved in this app to reset it.');
+  var k = window.prompt('Forgot the PIN? Paste the Google Gemini key saved in this app to reset it.');
   if (k == null) return;
-  if (LCFG.key && k.trim() === LCFG.key) { S.ppw = null; save(); plockShow(); $('plmsg').textContent = 'Password removed. Choose a new one.'; }
+  if (LCFG.key && k.trim() === LCFG.key) { S.ppw = null; save(); plockShow(); $('plmsg').textContent = 'PIN removed. Choose a new one.'; }
   else $('plerr').textContent = LCFG.key ? 'That is not the saved key.' : 'No key is saved yet. Reinstall the app or move the setup from another device.';
 });
 $('plchange').addEventListener('click', function () { PL.changing = true; PL.open = false; plockShow(); window.scrollTo(0, 0); });
@@ -1383,6 +1388,34 @@ $('lpractice').addEventListener('click', function () {
   if (L.on && L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: '[app: a kid just tapped the "Practice with Tut" button, so the kids WANT to practise right now. Run a short, fun word challenge in your own style (about 2 minutes): Masri words they have learned (check your memory) plus one or two new ones, quick back-and-forth, award_points for each word they say, show_phrase for each word. Cool, not a classroom. Stop when they move on.]' } }));
   else { L.practiceNext = true; $('ltalk').click(); }
 });
+
+/* ---- views + floating parents button ---- */
+function goView(v) {
+  Array.prototype.forEach.call(document.querySelectorAll('.view'), function (x) { x.classList.remove('on'); });
+  $('v-' + v).classList.add('on'); $('pfab').hidden = v === 'par';
+  if (v === 'par') { plockShow(); } else { PL.open = false; PL.changing = false; drawLive(); }
+  window.scrollTo(0, 0);
+}
+function plOpened() { /* parent is in: Tut stops listening and goes quiet */
+  if (L.on) { L.byUser = true; liveStop(''); }
+  drawPar(); drawFav();
+}
+$('plback').addEventListener('click', function () { goView('live'); });
+$('pdone').addEventListener('click', function () { save(); goView('live'); });
+(function () {
+  var b = $('pfab'), drag = null, idle;
+  try { var p = JSON.parse(localStorage.getItem('tut-pfab') || 'null'); if (p) { b.style.left = p.x + 'px'; b.style.top = p.y + 'px'; } } catch (e) {}
+  function wake() { b.classList.add('act'); clearTimeout(idle); idle = setTimeout(function () { b.classList.remove('act'); }, 2500); }
+  function clamp() { var r = b.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
+    var x = r.left + r.width / 2 < W / 2 ? 10 : W - r.width - 10, y = Math.max(40, Math.min(H - r.height - 20, r.top));
+    b.style.left = x + 'px'; b.style.top = y + 'px'; try { localStorage.setItem('tut-pfab', JSON.stringify({ x: x, y: y })); } catch (e) {} }
+  b.addEventListener('pointerdown', function (e) { wake(); var r = b.getBoundingClientRect(); drag = { dx: e.clientX - r.left, dy: e.clientY - r.top, x0: e.clientX, y0: e.clientY, moved: false }; try { b.setPointerCapture(e.pointerId); } catch (er) {} });
+  b.addEventListener('pointermove', function (e) { if (!drag) return; if (Math.abs(e.clientX - drag.x0) + Math.abs(e.clientY - drag.y0) > 8) { drag.moved = true; b.classList.add('dragging'); }
+    if (drag.moved) { b.style.left = (e.clientX - drag.dx) + 'px'; b.style.top = (e.clientY - drag.dy) + 'px'; wake(); } });
+  b.addEventListener('pointerup', function () { if (!drag) return; var m = drag.moved; drag = null; b.classList.remove('dragging'); if (m) { clamp(); b.dataset.dragged = '1'; } });
+  b.addEventListener('click', function (e) { if (b.dataset.dragged) { delete b.dataset.dragged; e.preventDefault(); return; } wake(); goView('par'); });
+  window.addEventListener('resize', clamp); setTimeout(clamp, 50);
+})();
 
 face('sideeye'); drawTurns(); drawPhrase(); drawLive(); if (window.TUT_IMPORTED) $('lbubble').textContent = window.TUT_IMPORTED;
 </script>

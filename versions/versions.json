@@ -82,7 +82,7 @@
    "Chaos watch: screaming is called out within ~4 s; nonstop talking-over-each-other gets checked every ~6 s instead of waiting for it to end",
    "Can look things up online (Google Search): weather, facts, news, scores; kid-safe answers",
    "Arabic teaching level 0-10 (default 3) in Parents or by voice in instructions mode",
-   "Simpler app: just 2 tabs (Tut, Parents). Old Practice tab (second voice) removed: one 'Practice with Tut' button instead. Favors moved into Parents. Parents locked with a password you set"
+   "Simpler app: no tab bar. One floating, draggable, see-through blue Parents button (like the iPhone AssistiveTouch circle) opens a PIN screen; entering the PIN puts Tut to sleep. 'Save and go back to Tut' button. Old Practice tab replaced by one 'Practice with Tut' button; Favors moved into Parents"
   ],
   "note": "Needs a Google Gemini key in Parents."
  }
