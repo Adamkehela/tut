@@ -102,7 +102,7 @@ input[type=text],input[type=number],input[type=password]{height:52px;border-radi
 
 /* floating nav */
 nav{position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));padding:0 18px;pointer-events:none}
-nav div{pointer-events:auto;max-width:420px;margin:0 auto;background:var(--lapis);border-radius:999px;padding:6px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;box-shadow:0 6px 0 rgba(27,36,71,.25)}
+nav div{pointer-events:auto;max-width:420px;margin:0 auto;background:var(--lapis);border-radius:999px;padding:6px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;box-shadow:0 6px 0 rgba(27,36,71,.25)}
 nav button{height:48px;border-radius:999px;border:0;background:transparent;color:#fff;font-size:15px;font-weight:700;padding:0 4px}
 nav button[aria-current=page]{background:var(--sun);color:var(--ink);font-weight:800}
 nav button:focus-visible{outline-color:#fff}
@@ -147,6 +147,8 @@ nav button:focus-visible{outline-color:#fff}
 .lheard{font-size:14px;text-align:center;color:#4A4630;min-height:18px}
 .lerr{font-size:16px;font-weight:700;color:#8A1F0B;background:#FFE1D6;border-radius:18px;padding:12px 16px;white-space:pre-wrap;overflow-wrap:anywhere}
 .lerr:empty{display:none}
+[hidden]{display:none!important}
+#lpractice{color:var(--ink);font-weight:800;width:100%}
 </style>
 </head>
 <body>
@@ -164,6 +166,7 @@ nav button:focus-visible{outline-color:#fff}
       <p class="lheard" id="lheard"></p>
       <p class="lerr" id="lerr" role="alert"></p>
       <div class="said"><span class="n" id="lpn">Tut just said</span><span class="ar" id="lpar" lang="ar"></span><span class="tr" id="lptr"></span><span class="en" id="lpen"></span></div>
+      <button class="stone" id="lpractice" type="button">Practice with Tut</button>
     </div>
   </section>
 
@@ -202,9 +205,23 @@ nav button:focus-visible{outline-color:#fff}
     </div>
   </section>
 
-  <section class="view" id="v-fav" aria-label="Royal favors">
-    <div class="sky small"><div class="sun" aria-hidden="true"></div><h1>Royal favors</h1><svg class="dunes" viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true"><path d="M250 40 L292 4 L334 40 Z" fill="#DDB45C"/><path d="M306 44 L336 18 L366 44 Z" fill="#EBC878"/><path d="M0 40 C60 14 120 20 180 38 C240 54 300 30 400 36 L400 64 L0 64 Z" fill="#EBC878"/><path d="M0 52 C80 34 150 56 230 46 C300 38 350 50 400 46 L400 64 L0 64 Z" fill="#F8E6B8"/></svg></div>
-    <div class="body">
+  
+
+  <section class="view" id="v-par" aria-label="Parents">
+    <div class="sky small"><div class="sun" aria-hidden="true"></div><h1>Parents</h1><svg class="dunes" viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true"><path d="M250 40 L292 4 L334 40 Z" fill="#DDB45C"/><path d="M306 44 L336 18 L366 44 Z" fill="#EBC878"/><path d="M0 40 C60 14 120 20 180 38 C240 54 300 30 400 36 L400 64 L0 64 Z" fill="#EBC878"/><path d="M0 52 C80 34 150 56 230 46 C300 38 350 50 400 46 L400 64 L0 64 Z" fill="#F8E6B8"/></svg></div>
+    <div class="body" id="plock">
+      <div class="group">
+        <h2 id="plh">Parents only</h2>
+        <p class="muted" id="plmsg">Enter the parents password.</p>
+        <label for="plpw">Password<input id="plpw" type="password" autocomplete="off"></label>
+        <label for="plpw2" id="plpw2l" hidden>Type it again<input id="plpw2" type="password" autocomplete="off"></label>
+        <button class="stone" id="plgo" type="button">Open</button>
+        <button class="stone" id="plforgot" type="button">Forgot password</button>
+        <p class="lerr" id="plerr" role="alert"></p>
+      </div>
+    </div>
+    <div class="body" id="pbody" hidden>
+      <div class="group"><h2>Scores and favors</h2>
       <div class="crown">
         <span class="medal" aria-hidden="true"><svg width="56" height="46" viewBox="0 0 56 46"><path d="M5 40 L5 12 L18 26 L28 6 L38 26 L51 12 L51 40 Z" fill="#1F3F8F" stroke="#1F3F8F" stroke-width="5" stroke-linejoin="round"/></svg></span>
         <div><span class="muted">El Basha today</span><strong id="basha"></strong><span class="muted" id="bashasub"></span></div>
@@ -215,11 +232,10 @@ nav button:focus-visible{outline-color:#fff}
         <div class="nile"><i id="fambar"></i></div>
       </div>
     </div>
-  </section>
-
-  <section class="view" id="v-par" aria-label="Parents">
-    <div class="sky small"><div class="sun" aria-hidden="true"></div><h1>Parents</h1><svg class="dunes" viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true"><path d="M250 40 L292 4 L334 40 Z" fill="#DDB45C"/><path d="M306 44 L336 18 L366 44 Z" fill="#EBC878"/><path d="M0 40 C60 14 120 20 180 38 C240 54 300 30 400 36 L400 64 L0 64 Z" fill="#EBC878"/><path d="M0 52 C80 34 150 56 230 46 C300 38 350 50 400 46 L400 64 L0 64 Z" fill="#F8E6B8"/></svg></div>
-    <div class="body">
+      <div class="group">
+        <h2>Parents password</h2>
+        <button class="stone" id="plchange" type="button">Change password</button>
+      </div>
       <div class="group">
         <h2>Children</h2>
         <label for="n0">Child 1 name<input id="n0" type="text" maxlength="14" autocomplete="off"></label>
@@ -281,9 +297,7 @@ nav button:focus-visible{outline-color:#fff}
 </main>
 <nav aria-label="Main"><div>
   <button type="button" data-v="live" aria-current="page">Tut</button>
-  <button type="button" data-v="play">Practice</button>
-  <button type="button" data-v="fav">Favors</button>
-  <button type="button" data-v="par">Parents</button>
+  <button type="button" data-v="par">Parents (locked)</button>
 </div></nav>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
@@ -446,8 +460,7 @@ Array.prototype.forEach.call(document.querySelectorAll('nav button'), function (
     b.setAttribute('aria-current', 'page');
     Array.prototype.forEach.call(document.querySelectorAll('.view'), function (v) { v.classList.remove('on'); });
     $('v-' + b.getAttribute('data-v')).classList.add('on');
-    if (b.getAttribute('data-v') === 'fav') drawFav();
-    if (b.getAttribute('data-v') === 'par') drawPar();
+    if (b.getAttribute('data-v') === 'par') { plockShow(); drawPar(); drawFav(); } else { PL.open = false; PL.changing = false; }
     if (b.getAttribute('data-v') === 'play') drawTurns();
     if (b.getAttribute('data-v') === 'live') drawLive();
     window.scrollTo(0, 0);
@@ -1335,6 +1348,41 @@ var VIBE = [
 function vibeFrom(text) { if (Date.now() < L.faceT) return; for (var i = 0; i < VIBE.length; i++) if (VIBE[i][0].test(text)) { rigMood(VIBE[i][1], VIBE[i][2]); return; } }
 
 setupImport(); if (active().indexOf(S.turn) < 0) S.turn = active()[0];
+/* ---- Parents password ---- */
+var PL = { open: false, changing: false };
+async function plHash(t) { var d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('tut-parents:' + t)); return Array.prototype.map.call(new Uint8Array(d), function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); }
+function plockShow() {
+  var setting = !S.ppw || PL.changing;
+  $('pbody').hidden = !PL.open; $('plock').hidden = PL.open; $('plerr').textContent = ''; $('plpw').value = ''; $('plpw2').value = '';
+  $('plh').textContent = setting ? 'Set a parents password' : 'Parents only';
+  $('plmsg').textContent = setting ? 'Choose a password for this screen. Kids will not be able to open Parents without it.' : 'Enter the parents password.';
+  $('plpw2l').hidden = !setting; $('plgo').textContent = setting ? 'Save password' : 'Open'; $('plforgot').hidden = setting;
+}
+$('plgo').addEventListener('click', async function () {
+  var p = $('plpw').value, setting = !S.ppw || PL.changing;
+  if (setting) {
+    if (p.length < 4) { $('plerr').textContent = 'Use at least 4 characters.'; return; }
+    if (p !== $('plpw2').value) { $('plerr').textContent = 'The two passwords do not match.'; return; }
+    S.ppw = await plHash(p); save(); PL.changing = false; PL.open = true; plockShow(); return;
+  }
+  if (await plHash(p) === S.ppw) { PL.open = true; plockShow(); window.scrollTo(0, 0); } else { $('plerr').textContent = 'Wrong password.'; $('plpw').value = ''; }
+});
+$('plpw').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('plgo').click(); });
+$('plpw2').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('plgo').click(); });
+$('plforgot').addEventListener('click', function () {
+  var k = window.prompt('Forgot the password? Paste the Google Gemini key saved in this app to reset it.');
+  if (k == null) return;
+  if (LCFG.key && k.trim() === LCFG.key) { S.ppw = null; save(); plockShow(); $('plmsg').textContent = 'Password removed. Choose a new one.'; }
+  else $('plerr').textContent = LCFG.key ? 'That is not the saved key.' : 'No key is saved yet. Reinstall the app or move the setup from another device.';
+});
+$('plchange').addEventListener('click', function () { PL.changing = true; PL.open = false; plockShow(); window.scrollTo(0, 0); });
+document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { PL.open = false; PL.changing = false; if ($('v-par').classList.contains('on')) plockShow(); } });
+/* ---- Practice: one button, Tut runs it ---- */
+$('lpractice').addEventListener('click', function () {
+  if (L.on && L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: '[app: a kid just tapped the "Practice with Tut" button, so the kids WANT to practise right now. Run a short, fun word challenge in your own style (about 2 minutes): Masri words they have learned (check your memory) plus one or two new ones, quick back-and-forth, award_points for each word they say, show_phrase for each word. Cool, not a classroom. Stop when they move on.]' } }));
+  else { L.practiceNext = true; $('ltalk').click(); }
+});
+
 face('sideeye'); drawTurns(); drawPhrase(); drawLive(); if (window.TUT_IMPORTED) $('lbubble').textContent = window.TUT_IMPORTED;
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});</script>
