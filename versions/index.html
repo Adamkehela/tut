@@ -1,0 +1,51 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Tut versions</title>
+<style>
+:root{--bg:#140d08;--card:#24180f;--ink:#F6E9CF;--soft:#CDBB98;--gold:#E8B85A}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.4}
+main{max-width:760px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 16px 40px}
+h1{font-size:28px;margin:4px 0 4px} .lead{color:var(--soft);margin:0 0 18px;font-size:16px}
+.card{display:flex;gap:16px;background:var(--card);border-radius:22px;padding:14px;margin:0 0 14px;border:2px solid transparent}
+.card.cur{border-color:var(--gold)}
+.card img{width:130px;height:auto;aspect-ratio:195/380;object-fit:cover;object-position:top;border-radius:14px;flex-shrink:0;background:#000}
+.txt{min-width:0;flex:1} .top{margin:0;display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--soft)}
+.vid{font-weight:800;color:var(--gold)} .badge{background:var(--gold);color:#1B1208;font-weight:800;border-radius:999px;padding:1px 10px}
+h2{margin:4px 0 6px;font-size:22px} .theme{margin:0 0 6px;font-size:15px} ul{margin:0 0 6px;padding-left:18px;font-size:15px} li{margin:2px 0}
+.note{margin:0 0 10px;color:var(--soft);font-size:14px}
+.open{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:999px;background:var(--gold);color:#1B1208;font-weight:800;text-decoration:none}
+.open:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@media (max-width:480px){.card{flex-direction:column} .card img{width:100%;max-height:300px}}
+</style></head><body><main>
+<h1>Tut versions</h1>
+<p class="lead">Every version of the app, newest first. Opening an older one keeps your names, key, voices and points. The home-screen icon always opens the current version.</p>
+<article class="card cur">
+  <img src="v3/thumb.jpg" alt="Screenshot of Tomb Tut" width="195" height="380" loading="lazy">
+  <div class="txt">
+    <p class="top"><span class="vid">v3</span><span class="badge">Current</span><span class="date">Nov 13, 2026</span></p>
+    <h2>Tomb Tut</h2>
+    <p class="theme"><b>Theme:</b> Dark torch-lit tomb, realistic dusty little mummy</p>
+    <ul><li>Everything in Live Tut</li><li>New face: a realistic generated mummy picture brought to life</li><li>Ember eyes that glow, glance, roll and blink; mouth opens with his voice</li><li>Flickering torchlight and floating dust</li><li>This versions catalog (Parents &gt; App versions)</li></ul>
+    <p class="note">Needs a Google Gemini key in Parents.</p>
+    <a class="open" href="../">Open Tomb Tut</a>
+  </div>
+</article><article class="card">
+  <img src="v2/thumb.jpg" alt="Screenshot of Live Tut" width="195" height="380" loading="lazy">
+  <div class="txt">
+    <p class="top"><span class="vid">v2</span><span class="date">Nov 12, 2026</span></p>
+    <h2>Live Tut</h2>
+    <p class="theme"><b>Theme:</b> Sunny desert, big animated cartoon face</p>
+    <ul><li>Live talking Tut (Google Gemini Live, Algenib voice): grumpy, roasting, teaches Egyptian in context</li><li>Face moves with his voice: mouth, eyes, brows and moods</li><li>Tut gives points himself; up to 4 kids</li><li>Memory of past hangouts; voice recognition for kids and parents</li><li>Parent instructions mode (say &quot;Seriously&quot;) including changing scores</li><li>Setup link to copy everything to a phone; Practice tab kept</li></ul>
+    <p class="note">Needs a Google Gemini key in Parents.</p>
+    <a class="open" href="v2/">Open Live Tut</a>
+  </div>
+</article><article class="card">
+  <img src="v1/thumb.jpg" alt="Screenshot of Arabic Hour" width="195" height="380" loading="lazy">
+  <div class="txt">
+    <p class="top"><span class="vid">v1</span><span class="date">Nov 11, 2026</span></p>
+    <h2>Arabic Hour</h2>
+    <p class="theme"><b>Theme:</b> Sunny desert, flat cartoon Tut</p>
+    <ul><li>Tap-to-play: 20 Egyptian phrases and Tut lines in your own recorded gruff voice</li><li>Points per kid (3 kids), turn-taking, Tut tut-tuts and praise</li><li>Favors: family goal and rewards</li><li>Parents settings for names and points</li></ul>
+    <p class="note">No live conversation.</p>
+    <a class="open" href="v1/">Open Arabic Hour</a>
+  </div>
+</article>
+</main></body></html>
