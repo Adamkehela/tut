@@ -60,7 +60,7 @@
   "theme": "Dark tomb, realistic dusty little mummy",
   "functions": [
    "Everything in v4",
-   "Mouth made from 16 real mouth pictures: closed, slightly open, ah (2 sizes), uh, eh, ay, ee (2), oo, w, oh (2), f, s, l",
+   "Mouth made from 30 real mouth pictures (vowels in 2-3 sizes, plus b/p, f, s, sh, th, l, r, k, w)",
    "Picks the shape from the sound and how loud it is, and moves smoothly between shapes; no ring around the head"
   ],
   "note": "Needs a Google Gemini key in Parents."
