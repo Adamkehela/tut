@@ -77,7 +77,8 @@
    "Rotates his jokes: remembers his recent lines and avoids repeating them; 'woke up after 3,000 years' bits used rarely",
    "Voice-ID notes no longer make him butt in",
    "Screen stays on while Tut is awake; long chats reconnect on their own instead of switching off",
-   "Parents > Tut's memory now lists what he remembers, grouped by kid; in instructions mode he reads it out per kid when asked"
+   "Parents > Tut's memory now lists what he remembers, grouped by kid; in instructions mode he reads it out per kid when asked",
+   "Stronger voice recognition: many samples per person, 'Add more' recordings, learns from play; about 3x fewer misses in testing"
   ],
   "note": "Needs a Google Gemini key in Parents."
  }

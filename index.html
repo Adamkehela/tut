@@ -402,7 +402,8 @@ $('ruleadd').addEventListener('click', function () { var v = $('rulein').value.r
 function q8(b64s) { if (!b64s) return null; var f = vDec(b64s), u = new Uint8Array(f.length), i; for (i = 0; i < f.length; i++) u[i] = Math.max(-127, Math.min(127, Math.round(f[i] * 400))) + 128; return b64(u.buffer); }
 function d8(s) { if (!s) return null; var bin = atob(s), f = new Float32Array(bin.length), i; for (i = 0; i < bin.length; i++) f[i] = (bin.charCodeAt(i) - 128) / 400; return vEnc(vNorm(f)); }
 function setupLink() {
-  var o = { id: Date.now().toString(36), S: JSON.parse(JSON.stringify(S)), L: LCFG }; o.S.vp = S.vp.map(q8); o.S.pvp = S.pvp.map(q8); delete o.S.importId;
+  var o = { id: Date.now().toString(36), S: JSON.parse(JSON.stringify(S)), L: LCFG }; o.S.vp = S.vp.map(q8); o.S.pvp = S.pvp.map(q8); delete o.S.importId; delete o.S.said;
+  o.S.vx = (S.vx || []).map(function (x) { var a = vxDec(x); if (!a.length) return null; var n = Math.min(14, a.length), out = [], k; for (k = 0; k < n; k++) out.push(a[Math.floor(k * a.length / n)]); return vxEnc(out); }); o.S.vl = (S.vl || []).map(function (x) { var a = vxDec(x); return a.length ? vxEnc(a.slice(-4)) : null; });
   var bytes = new TextEncoder().encode(JSON.stringify(o));
   return 'https://adamkehela.github.io/tut/#setup=' + b64(bytes.buffer).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
@@ -413,7 +414,7 @@ function setupImport() {
     var bin = atob(s), u = new Uint8Array(bin.length), i; for (i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
     var o = JSON.parse(new TextDecoder().decode(u)); if (!o || !o.S || o.id === S.importId) return;
     for (var k in S) if (o.S[k] !== undefined) S[k] = o.S[k];
-    S.vp = (o.S.vp || []).map(d8); S.pvp = (o.S.pvp || []).map(d8); while (S.vp.length < 4) S.vp.push(null); while (S.pvp.length < 2) S.pvp.push(null);
+    S.vx = o.S.vx || []; S.vl = o.S.vl || []; vModelReset(); S.vp = (o.S.vp || []).map(d8); S.pvp = (o.S.pvp || []).map(d8); while (S.vp.length < 4) S.vp.push(null); while (S.pvp.length < 2) S.pvp.push(null);
     S.importId = o.id; if (S.day !== today()) { S.day = today(); S.dpts = [0, 0, 0, 0]; } save();
     if (o.L) { for (var k2 in LCFG) if (o.L[k2]) LCFG[k2] = o.L[k2]; saveL(); }
     var nv = 0; for (i = 0; i < 6; i++) if (pName(i) && vpGet(i)) nv++;
@@ -889,7 +890,21 @@ function vDec(s) { var bin = atob(s), u = new Uint8Array(bin.length), i; for (i 
 /* people: 0-3 are kids, 4-5 are parents */
 function pName(i) { return i < 4 ? S.names[i] : S.pn[i - 4]; }
 function vpGet(i) { return i < 4 ? S.vp[i] : S.pvp[i - 4]; }
-function vpSet(i, v) { if (i < 4) S.vp[i] = v; else S.pvp[i - 4] = v; save(); }
+function vpSet(i, v) { if (i < 4) S.vp[i] = v; else S.pvp[i - 4] = v; if (!v) { S.vx = S.vx || []; S.vl = S.vl || []; S.vx[i] = null; S.vl[i] = null; } vModelReset(); save(); }
+/* many samples per person (from the recordings + learned during play), stored int8 */
+function vxEnc(list) { var u = new Uint8Array(list.length * 512), k, j; for (k = 0; k < list.length; k++) for (j = 0; j < 512; j++) u[k * 512 + j] = Math.max(-127, Math.min(127, Math.round(list[k][j] * 400))) + 128; return b64(u.buffer); }
+function vxDec(s) { if (!s) return []; var bin = atob(s), n = Math.floor(bin.length / 512), out = [], k, j; for (k = 0; k < n; k++) { var f = new Float32Array(512); for (j = 0; j < 512; j++) f[j] = (bin.charCodeAt(k * 512 + j) - 128) / 400; out.push(vNorm(f)); } return out; }
+function vxGet(i) { S.vx = S.vx || [null, null, null, null, null, null]; S.vl = S.vl || [null, null, null, null, null, null]; return vxDec(S.vx[i]).concat(vxDec(S.vl[i])); }
+V.model = null; function vModelReset() { V.model = null; }
+function vModel() { /* mean-normalised sample sets for everyone, rebuilt when anything changes */
+  if (V.model) return V.model;
+  var ppl = [], all = [], i, j, k;
+  for (i = 0; i < 6; i++) { if (!pName(i) || !vpGet(i)) continue; var sm = vxGet(i); if (!sm.length) sm = [vDec(vpGet(i))]; ppl.push({ i: i, raw: sm }); all = all.concat(sm); }
+  var mu = new Float32Array(512); if (ppl.length > 1) { all.forEach(function (e) { for (j = 0; j < 512; j++) mu[j] += e[j] / all.length; }); }
+  ppl.forEach(function (p) { p.sm = p.raw.map(function (e) { var o = new Float32Array(512); for (j = 0; j < 512; j++) o[j] = e[j] - mu[j]; return vNorm(o); });
+    var c = new Float32Array(512); p.sm.forEach(function (e) { for (j = 0; j < 512; j++) c[j] += e[j]; }); p.c = vNorm(c); });
+  V.model = { ppl: ppl, mu: mu, multi: ppl.length > 1 }; return V.model;
+}
 function vPrints() { var p = [], i; for (i = 0; i < 6; i++) if (pName(i) && vpGet(i)) p.push({ i: i, v: vDec(vpGet(i)) }); return p; }
 function vHas() { for (var i = 0; i < 6; i++) if (pName(i) && vpGet(i)) return true; return false; }
 /* keep only the parts with a voice in them */
@@ -900,44 +915,67 @@ function vVoiced(x) {
   for (i = 0; i < n; i++) if (e[i] > th || (i > 0 && e[i - 1] > th) || (i + 1 < n && e[i + 1] > th)) { out.set(x.subarray(i * fr, (i + 1) * fr), k); k += fr; }
   return out.subarray(0, k);
 }
-async function vEnroll(i, x) {
+function vNoise(x, snr) { var o = new Float32Array(x.length), p = 0, i, ex = 0, en = 0, b = 0, m = 0;
+  var n = new Float32Array(x.length); for (i = 0; i < x.length; i++) { b += (Math.random() * 2 - 1); m += (b - m) / 400; n[i] = b - m; ex += x[i] * x[i]; en += n[i] * n[i]; }
+  var g = Math.sqrt(ex / Math.max(1e-9, en)) / Math.pow(10, snr / 20); for (i = 0; i < x.length; i++) o[i] = x[i] + n[i] * g; return o; }
+async function vEnroll(i, x, add) {
   var v = vVoiced(x); if (v.length < 16000 * 6) return { ok: false, why: 'Not enough talking. I need about 10 seconds of voice. Try again, closer to the device.' };
-  var L3 = 48000, embs = [], k, sum = new Float32Array(512), j;
-  for (k = 0; k + L3 <= v.length && embs.length < 8; k += L3) { var e = await vEmbed(v.subarray(k, k + L3)); if (e) embs.push(e); }
-  if (embs.length < 2) return { ok: false, why: 'Not enough talking. Try again.' };
-  var self = 0, c = 0; for (k = 0; k < embs.length; k++) { for (j = 0; j < 512; j++) sum[j] += embs[k][j]; for (j = k + 1; j < embs.length; j++) { self += vCos(embs[k], embs[j]); c++; } }
-  self /= c; var print = vNorm(sum);
-  if (self < 0.3) return { ok: false, why: 'That recording was too noisy or had more than one person in it. Try again in a quiet room, one kid only.' };
-  var close = ''; vPrints().forEach(function (p) { if (p.i !== i && vCos(p.v, print) > 0.55) close = pName(p.i); });
-  vpSet(i, vEnc(print));
-  return { ok: true, self: self, close: close };
+  var embs = [], k, j, e;
+  for (k = 0; k + 24000 <= v.length; k += 12000) { e = await vEmbed(v.subarray(k, k + 24000)); if (e) embs.push(e); }
+  for (k = 0; k + 48000 <= v.length; k += 12000) { e = await vEmbed(v.subarray(k, k + 48000)); if (e) embs.push(e); }
+  for (k = 0; k + 48000 <= v.length; k += 24000) { e = await vEmbed(vNoise(v.subarray(k, k + 48000), 15)); if (e) embs.push(e); }
+  if (embs.length < 6) return { ok: false, why: 'Not enough talking. Try again.' };
+  var sum = new Float32Array(512), self = 0, c = 0; for (k = 0; k < embs.length; k++) { for (j = 0; j < 512; j++) sum[j] += embs[k][j]; for (j = k + 1; j < embs.length; j += 3) { self += vCos(embs[k], embs[j]); c++; } }
+  self /= c; if (self < 0.3) return { ok: false, why: 'That recording was too noisy or had more than one person in it. Try again in a quiet room, one person only.' };
+  var old = add ? vxDec((S.vx || [])[i]) : [], all = old.concat(embs); while (all.length > 120) all.shift();
+  S.vx = S.vx || [null, null, null, null, null, null]; S.vl = S.vl || [null, null, null, null, null, null];
+  var cs = new Float32Array(512); all.forEach(function (q) { for (j = 0; j < 512; j++) cs[j] += q[j]; }); var print = vNorm(cs);
+  var close = ''; vPrints().forEach(function (p) { if (p.i !== i && vCos(p.v, print) > 0.6) close = pName(p.i); });
+  S.vx[i] = vxEnc(all); if (!add) S.vl[i] = null; vpSet(i, vEnc(print));
+  return { ok: true, self: self, close: close, n: all.length };
+}
+async function vEmbedUtt(x) { /* average several overlapping windows + the whole clip: steadier than one shot */
+  var es = [], e, k, L = x.length;
+  if (L >= 36000) { var n = Math.min(3, Math.floor((L - 24000) / 12000) + 1), step = n > 1 ? (L - 24000) / (n - 1) : 0; for (k = 0; k < n; k++) { e = await vEmbed(x.subarray(Math.round(k * step), Math.round(k * step) + 24000)); if (e) es.push(e); } }
+  e = await vEmbed(x); if (e) es.push(e); if (!es.length) return null;
+  var m = new Float32Array(512), j; es.forEach(function (q) { for (j = 0; j < 512; j++) m[j] += q[j]; }); return vNorm(m);
 }
 async function vWho(x) {
-  var ps = vPrints(); if (!ps.length) return null;
-  var e = await vEmbed(x); if (!e) return null;
-  V.lastEmb = e; V.lastEmbT = Date.now();
-  var sc = ps.map(function (p) { return { i: p.i, s: vCos(p.v, e) }; }).sort(function (a, b) { return b.s - a.s; });
-  var best = sc[0], second = sc[1] ? sc[1].s : -1;
-  return { i: (best.s >= V.TH && best.s - second >= V.MARGIN) ? best.i : -1, best: best, second: second, sc: sc };
+  var M = vModel(); if (!M.ppl.length) return null;
+  var raw = await vEmbedUtt(x); if (!raw) return null;
+  V.lastEmb = raw; V.lastEmbT = Date.now();
+  var e = new Float32Array(512), j; for (j = 0; j < 512; j++) e[j] = raw[j] - M.mu[j]; e = vNorm(e);
+  var prev = V.last && Date.now() - V.last.t < 15000 ? V.last.i : -1;
+  var sc = M.ppl.map(function (p) { var ss = p.sm.map(function (q) { return vCos(q, e); }).sort(function (a, b) { return b - a; });
+    var k = Math.min(5, ss.length), top = 0; for (j = 0; j < k; j++) top += ss[j] / k;
+    var s = M.multi ? 0.2 * vCos(p.c, e) + 0.8 * top : vCos(p.c, e);
+    return { i: p.i, s: s + (p.i === prev ? 0.015 : 0) }; }).sort(function (a, b) { return b.s - a.s; });
+  var best = sc[0], second = sc[1] ? sc[1].s : -1, pr = 1;
+  if (M.multi) { var z = 0; sc.forEach(function (q) { z += Math.exp((q.s - best.s) / 0.05); }); pr = 1 / z; }
+  var ok = M.multi ? (pr >= 0.7 && best.s >= 0.2) : best.s >= V.TH;
+  return { i: ok ? best.i : -1, best: best, second: second, p: pr, sc: sc, raw: raw };
 }
-function vLearn(i) { /* a kid tapped their name right after talking: nudge their voiceprint toward that sample */
-  if (!V.lastEmb || Date.now() - V.lastEmbT > 8000 || !vpGet(i)) return;
-  var p = vDec(vpGet(i)), o = new Float32Array(512), j; for (j = 0; j < 512; j++) o[j] = 0.88 * p[j] + 0.12 * V.lastEmb[j];
-  vpSet(i, vEnc(vNorm(o)));
+function vAdd(i, raw) { /* learn from play: keep up to 30 extra samples per person */
+  if (!raw || !vpGet(i)) return; S.vl = S.vl || [null, null, null, null, null, null];
+  var l = vxDec(S.vl[i]); l.push(raw); while (l.length > 30) l.shift(); S.vl[i] = vxEnc(l); vModelReset(); save();
+}
+function vLearn(i) { /* a kid tapped their name right after talking: that clip is a sure sample of their voice */
+  if (!V.lastEmb || Date.now() - V.lastEmbT > 8000 || !vpGet(i)) return; vAdd(i, V.lastEmb); V.last = { i: i, t: Date.now() };
 }
 function vNote(t) { lNote(t); }
 async function vIdentify() {
   if (V.busy || !vHas()) return; V.busy = true;
   try {
-    var n = Math.min(V.uttN, 16000 * 4), x = new Float32Array(n), k = n, c;
+    var n = Math.min(V.uttN, 16000 * 6), x = new Float32Array(n), k = n, c;
     for (c = V.utt.length - 1; c >= 0 && k > 0; c--) { var seg = V.utt[c], take = Math.min(seg.length, k); x.set(seg.subarray(seg.length - take), k - take); k -= take; }
     var r = await vWho(x.subarray(k)); if (!r) return;
     V.log.push(r.sc.map(function (s) { return pName(s.i) + ' ' + s.s.toFixed(2); }).join(', ')); if (V.log.length > 30) V.log.shift();
     if (r.i >= 0) V.last = { i: r.i, t: Date.now() };
+    if (r.i >= 0 && r.p >= 0.98 && r.best.s >= 0.45 && x.length - k >= 32000) vAdd(r.i, r.raw);
     if (L.inst && r.i >= 0 && r.i < 4) { instSet(false); vNote('A kid is talking now, so the app closed instructions mode. Go back to being Tut.'); }
     if (L.inst && Date.now() - L.instT > 240000) { instSet(false); vNote('Instructions mode timed out and is closed.'); }
-    if (r.i >= 0) { if (L.who !== r.i) { L.who = r.i; drawLive(); vNote(r.i < 4 ? 'Voice match: the kid talking right now is ' + pName(r.i) + '.' : 'Voice match: the person talking right now is ' + pName(r.i) + ', a parent, not a kid.'); } $('lheard').textContent = 'Voice: ' + pName(r.i) + ' (' + Math.round(r.best.s * 100) + '%)'; }
-    else { if (L.who !== -1) { L.who = -1; drawLive(); vNote('The app could not tell whose voice this is. If it matters (points, names), ask who is talking.'); } $('lheard').textContent = 'Voice: not sure (' + pName(r.best.i) + ' ' + Math.round(r.best.s * 100) + '%)'; }
+    if (r.i >= 0) { if (L.who !== r.i) { L.who = r.i; drawLive(); vNote(r.i < 4 ? 'Voice match: the kid talking right now is ' + pName(r.i) + '.' : 'Voice match: the person talking right now is ' + pName(r.i) + ', a parent, not a kid.'); } $('lheard').textContent = 'Voice: ' + pName(r.i) + ' (' + Math.round(r.p * 100) + '% sure)'; }
+    else { if (L.who !== -1) { L.who = -1; drawLive(); vNote('The app could not tell whose voice this is. If it matters (points, names), ask who is talking.'); } $('lheard').textContent = 'Voice: not sure (maybe ' + pName(r.best.i) + ', ' + Math.round(r.p * 100) + '%)'; }
   } catch (e) { $('lheard').textContent = 'Voice check failed: ' + (e.message || e); }
   finally { V.busy = false; }
 }
@@ -950,10 +988,10 @@ function vFeed(f) {
   var speech = rms > Math.max(0.01, V.noise * 3.2);
   if (speech) { V.utt.push(new Float32Array(f)); V.uttN += f.length; V.voiced += dur; V.quiet = 0; if (!V.done && V.voiced >= 1.5) { V.done = true; vIdentify(); } }
   else if (V.uttN) { V.quiet += dur; if (V.quiet < 0.25) { V.utt.push(new Float32Array(f)); V.uttN += f.length; }
-    if (V.quiet >= 0.6) { if (!V.done && V.voiced >= 0.7) vIdentify(); V.utt = []; V.uttN = 0; V.voiced = 0; V.quiet = 0; V.done = false; } }
+    if (V.quiet >= 0.6) { if ((!V.done && V.voiced >= 0.7) || (V.done && V.voiced >= 3)) vIdentify(); V.utt = []; V.uttN = 0; V.voiced = 0; V.quiet = 0; V.done = false; } }
 }
 /* enrolment recording (Parents screen) */
-async function vRecord(i, btn, msg) {
+async function vRecord(i, btn, msg, add) {
   if (V.rec) return;
   var ac, stream;
   try { ac = new (window.AudioContext || window.webkitAudioContext)(); await ac.resume(); stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } }); }
@@ -968,8 +1006,8 @@ async function vRecord(i, btn, msg) {
     clearInterval(tm); pr.onaudioprocess = null; try { src.disconnect(); pr.disconnect(); } catch (e) {} stream.getTracks().forEach(function (t) { t.stop(); }); try { ac.close(); } catch (e) {}
     var n = 0, k = 0; chunks.forEach(function (c) { n += c.length; }); var x = new Float32Array(n); chunks.forEach(function (c) { x.set(c, k); k += c.length; });
     btn.textContent = 'Working...'; msg.textContent = 'Learning the voice...';
-    try { var r = await vEnroll(i, x);
-      msg.textContent = r.ok ? ('Saved ' + pName(i) + '\'s voice.' + (r.close ? ' It sounds a lot like ' + r.close + ', so expect some mix-ups between them.' : '')) : r.why; }
+    try { var r = await vEnroll(i, x, add);
+      msg.textContent = r.ok ? ((add ? 'Added to ' : 'Saved ') + pName(i) + '\'s voice (' + r.n + ' samples).' + (r.close ? ' It sounds a lot like ' + r.close + ', so expect some mix-ups between them.' : '')) : r.why; }
     catch (e) { msg.textContent = 'Could not learn the voice: ' + (e.message || e); }
     V.rec = null; btn.disabled = false; drawVoices();
   }, 1000);
@@ -979,10 +1017,12 @@ function drawVoices() {
   for (i = 0; i < 6; i++) (function (i) {
     var n = pName(i); if (!n) return; any = true;
     var r = document.createElement('div'); r.className = 'memrow';
-    var t = document.createElement('span'); t.textContent = n + (i >= 4 ? ' (parent)' : '') + ': ' + (vpGet(i) ? 'voice saved' : 'no voice yet');
+    var t = document.createElement('span'); var nx = vxDec((S.vx || [])[i]).length, nl = vxDec((S.vl || [])[i]).length; t.textContent = n + (i >= 4 ? ' (parent)' : '') + ': ' + (vpGet(i) ? (nx ? nx + ' samples' + (nl ? ' + ' + nl + ' learned' : '') : 'old voice, tap Redo to upgrade') : 'no voice yet');
     var b = document.createElement('button'); b.type = 'button'; b.textContent = vpGet(i) ? 'Redo' : 'Record'; b.setAttribute('aria-label', (vpGet(i) ? 'Record again the voice of ' : 'Record the voice of ') + n);
     b.addEventListener('click', function () { vRecord(i, b, $('voicemsg')); });
     r.appendChild(t); r.appendChild(b);
+    if (vpGet(i)) { var am = document.createElement('button'); am.type = 'button'; am.textContent = 'Add more'; am.setAttribute('aria-label', 'Record more of the voice of ' + n);
+      am.addEventListener('click', function () { vRecord(i, am, $('voicemsg'), true); }); r.appendChild(am); }
     if (vpGet(i)) { var d = document.createElement('button'); d.type = 'button'; d.textContent = 'Delete'; d.setAttribute('aria-label', 'Delete the saved voice of ' + n);
       d.addEventListener('click', function () { vpSet(i, null); drawVoices(); $('voicemsg').textContent = 'Deleted ' + n + '\'s voice.'; }); r.appendChild(d); }
     box.appendChild(r);
