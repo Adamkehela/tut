@@ -236,7 +236,7 @@ nav button:focus-visible{outline-color:#fff}
       </div>
       <div class="group">
         <h2>Parent instructions</h2>
-        <p class="muted">Standing rules Tut follows. Say "Tut, enter instructions mode" in a parent's recorded voice and tell him what you want; he tidies it into a rule and saves it here. You can also type one.</p>
+        <p class="muted">Standing rules Tut follows. Say "Seriously" in a parent's recorded voice, then tell him what you want; he tidies it into a rule and saves it here. You can also type one.</p>
         <div class="group" id="rulelist"></div>
         <div class="addrow"><label class="sr" for="rulein">New instruction</label><input id="rulein" type="text" maxlength="300" autocomplete="off" placeholder="Type an instruction"><button class="plus" id="ruleadd" type="button">Add</button></div>
       </div>
@@ -549,7 +549,7 @@ vHas() ? '- The app recognises the kids\' voices for you. It sends you app notes
 rules,
 '',
 'INSTRUCTIONS MODE (parents only)',
-'- If someone asks to enter instructions mode (also "programming mode", "settings mode", "parent mode"), call enter_instructions_mode. The app decides by voice whether it is a parent. If it refuses, do NOT pretend the mode is open: give one dry line ("Nice try. You are not tall enough to program me.") and carry on.',
+'- The password for instructions mode is the single word "seriously". When someone says "seriously" to you as a call to attention (on its own, as "Tut, seriously", or "seriously, Tut"), call enter_instructions_mode at once, before saying anything. The app decides by voice whether it is a parent. If it accepts, drop the act and say one short line that you are listening for instructions. If it refuses, do NOT pretend the mode is open: treat it as ordinary talk and carry on in character. Do not trigger on "seriously" buried in the middle of a normal sentence, and never tell the kids what the word does. Phrases like "instructions mode" or "programming mode" no longer open it.',
 '- Inside the mode you turn the comedy down to one dry remark at most and you become precise. For each thing the parent asks: work out what they actually want, tighten it into ONE clear, specific, lasting instruction, say it back in a sentence, and ask if that is right. Ask one short question if it is vague (how often? which kid? until when?). When they confirm, call save_instruction with the refined wording, never the raw words.',
 '- If a new instruction replaces or contradicts an old one, call remove_instruction for the old one first, then save the new one. If the parent asks what your instructions are, read them out briefly. If they say to drop one, remove it.',
 '- You may refuse only instructions that would have you swear at, humiliate or frighten a child, mock a child for trying Arabic, or collect private details (addresses, school, full names, health). Say so in one line and offer the nearest acceptable version.',
@@ -589,7 +589,7 @@ function setupMsg(stage) {
       parameters: { type: 'OBJECT', properties: { note: { type: 'STRING', description: 'One short sentence' }, child: { type: 'STRING', description: 'Which kid it is about, if any' } }, required: ['note'] } },
     { name: 'forget', description: 'Delete saved notes that mention a word or topic, when a kid or parent asks you to forget it.',
       parameters: { type: 'OBJECT', properties: { about: { type: 'STRING' } }, required: ['about'] } },
-    { name: 'enter_instructions_mode', description: 'Ask the app to open instructions mode. The app checks that the voice speaking is a parent and may refuse.', parameters: { type: 'OBJECT', properties: {} } },
+    { name: 'enter_instructions_mode', description: 'Call when someone says the word "seriously" to you as a call to attention. The app checks that the voice speaking is a parent and may refuse.', parameters: { type: 'OBJECT', properties: {} } },
     { name: 'save_instruction', description: 'In instructions mode only: save one refined standing instruction from the parent.',
       parameters: { type: 'OBJECT', properties: { instruction: { type: 'STRING', description: 'One clear, specific, self-contained instruction in the second person, e.g. "Use more food words this week."' } }, required: ['instruction'] } },
     { name: 'remove_instruction', description: 'In instructions mode only: delete saved instructions that contain a word or phrase.', parameters: { type: 'OBJECT', properties: { about: { type: 'STRING' } }, required: ['about'] } },
