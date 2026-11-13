@@ -509,8 +509,15 @@ function drawLive() {
   var p = L.phrase || { ar: 'يا باشا', tr: 'Ya basha', en: 'Hey, boss' };
   $('lpar').textContent = p.ar; $('lptr').textContent = p.tr; $('lpen').textContent = p.en;
 }
+function ptsNote(i, d) { /* changes made while Tut is not listening get announced next time he wakes up */
+  if (L.on && L.ready) return; S.pendPts = (S.pendPts || []).concat([{ k: i, d: d }]).slice(-12);
+}
+function ptsPending() { var p = S.pendPts || []; if (!p.length) return ''; var sum = {};
+  p.forEach(function (x) { sum[x.k] = (sum[x.k] || 0) + x.d; }); S.pendPts = []; save();
+  var t = Object.keys(sum).filter(function (k) { return sum[k]; }).map(function (k) { return S.names[k] + ' ' + (sum[k] > 0 ? '+' : '') + sum[k]; }).join(', ');
+  return t ? ' Also: while you were away a parent changed points (' + t + '). Announce each of these right after your opening line, by name and number, in the POINTS style.' : ''; }
 function award(i, pts) {
-  S.pts[i] += pts; S.dpts[i] += pts; save(); drawLive(); drawTurns();
+  S.pts[i] += pts; S.dpts[i] += pts; ptsNote(i, pts); save(); drawLive(); drawTurns();
   rigMood('proud', 4000); L.faceT = Date.now() + 4000;
   $('lheard').textContent = '+' + pts + ' for ' + S.names[i];
 }
@@ -619,6 +626,12 @@ wl,
 '4. Test each word a few times, mixed with others, until the kid gets it right at least three times (record_word tells you when it is mastered), then move on. Start with words they are still learning, mix in one or two new ones, and use mastered ones only as quick wins.',
 '5. Every answer: record_word (right, wrong or taught) and award_points when right. Wrong answers get a quick, kind correction and another try later, never mockery.',
 '6. After about 6 to 8 rounds or when they lose interest, wrap up in one line (who nailed what) and go back to normal.',
+'POINTS (always announce, out loud, every single time)',
+'- Every time points go up or down (award_points, change_points, or the app tells you a parent changed them), say it right away with the kid\'s name and the exact number. Never change points silently.',
+'- Gains: short, warm-ish, cool. Rotate, never the same twice in a row. For example: "Yaseen, ten points. Look at you." / "Emy just bagged twenty points. Show-off." / "جامد يا ريان! Ten points." / "That is ten points for Emy. Write it down, somebody." / "Ten points to Yaseen. I am not crying, it is the dust." / "Twenty for Emy. The tomb is impressed. Slightly."',
+'- Losses: sarcastic, dry, never mean about the kid themself, always about the moment. Rotate. For example: "Ooh. Yaseen just lost five points. Tragic. I will light a candle." / "Emy, minus ten. Congratulations, you are going backwards." / "And that is five points gone for Ryyaan. Bye-bye, points. يا خسارة." / "Minus five, Yaseen. A moment of silence for your score." / "Ten points evaporated from Emy. Impressive, in the wrong direction." / "خلاص, Ryyaan: minus five. The points have left the building."',
+'- Make up new lines in the same spirit; do not reuse the examples word for word every time.',
+'',
 '- PRACTICE: when a message says PRACTICE BUTTON, the kids are asking you directly. Always answer it out loud immediately and run the word challenge it describes. This overrides staying quiet.',
 '- CHAOS: if a [app: CHAOS ALERT] note arrives, or you can hear kids screaming, yelling or all talking over each other nonstop, do not wait politely for it to end. Cut in straight away, call it out like a cool older cousin who has had enough ("Whoa. WHOA. بس! What is this, a camel market? One at a time."), tell them to stop now and speak one at a time, then listen. Fresh wording each time. If it keeps going after you called it out, be firmer and shorter ("خلاص بقى. I am not talking to a stampede."). Once it calms down, drop it and carry on normally.',
 '- Never say stage directions, sound labels or notes about silence out loud (like "no speech", "pause", "silence", "[laughs]"). If you have nothing to say, produce nothing.',
@@ -742,7 +755,7 @@ function runTool(c) {
   if (c.name === 'award_points') {
     var i = findKid(a.child); if (i < 0) return { error: 'No child called ' + a.child + '. The children are: ' + active().map(function (x) { return S.names[x]; }).join(', ') };
     var pts = Number(a.points) >= 20 ? 20 : 10; award(i, pts);
-    return { result: 'ok', gave: pts, to: S.names[i], points_today: scores() };
+    return { result: 'ok', gave: pts, to: S.names[i], points_today: scores(), say_now: 'Announce it out loud right now: ' + S.names[i] + ' +' + pts + ' (POINTS style, fresh wording).' };
   }
   if (c.name === 'record_word') {
     var ki = findKid(a.child); if (ki < 0) return { error: 'No child called ' + a.child };
@@ -775,9 +788,9 @@ function runTool(c) {
     var amt = Math.round(Number(a.amount)); if (!isFinite(amt)) return { error: 'Give a number' };
     var who = String(a.child || '').trim().toLowerCase(), ids = (who === 'all' || who === 'everyone') ? active() : [findKid(a.child)];
     if (ids[0] === undefined || ids[0] < 0) return { error: 'No child called ' + a.child + '. The children are: ' + active().map(function (x) { return S.names[x]; }).join(', ') };
-    ids.forEach(function (i) { var d = a.how === 'set' ? amt - S.dpts[i] : amt; d = Math.max(d, -S.dpts[i]); S.dpts[i] += d; S.pts[i] = Math.max(0, S.pts[i] + d); });
+    var ch = []; ids.forEach(function (i) { var d = a.how === 'set' ? amt - S.dpts[i] : amt; d = Math.max(d, -S.dpts[i]); S.dpts[i] += d; S.pts[i] = Math.max(0, S.pts[i] + d); if (d) ch.push(S.names[i] + ' ' + (d > 0 ? '+' : '') + d); });
     save(); drawLive(); drawTurns(); $('lheard').textContent = 'Points changed by ' + pName(V.last.i) + '.';
-    return { result: 'ok', points_today: scores() };
+    return { result: 'ok', changed: ch, points_today: scores(), say_now: ch.length ? 'Announce out loud now, to the kids, each change by name and number (POINTS style): ' + ch.join(', ') : 'No change.' };
   }
   if (c.name === 'save_instruction' || c.name === 'remove_instruction') {
     if (!L.inst) return { error: 'Refused. Not in instructions mode.' };
@@ -828,7 +841,7 @@ function liveMsg(m) {
       'Just say a short, flat "yeah?"-style line in your own words, half Masri, and then wait for them to talk.',
       'Make a short, dry remark that shows you are in a mood today (pick a fresh, specific reason that is not about sleep, age or bandages), then wait for them.'];
     var op = OPEN[Math.floor(Math.random() * OPEN.length)];
-    L.ws.send(JSON.stringify({ realtimeInput: { text: '[app: the session just started] ' + op + ' Do not start a lesson, do not offer help, then stay quiet until someone talks to you.' } }));
+    L.ws.send(JSON.stringify({ realtimeInput: { text: '[app: the session just started] ' + op + ptsPending() + ' Do not start a lesson, do not offer help, then stay quiet until someone talks to you.' } }));
     return;
   }
   if (m.toolCall && m.toolCall.functionCalls) {

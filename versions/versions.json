@@ -86,7 +86,8 @@
    "Pick Tut's look with pictures at the top of Parents: realistic mummy or the cartoon mummy from v2",
    "Fix: PIN, teaching level, voice samples and look are now kept after the app restarts",
    "Practice button fixed: Tut starts the word challenge out loud right away (also when he was asleep)",
-   "Practice mode: 12 rotating openers, clear rules (say-it-back / guess-it rounds, by name), tests each word until mastered; Parents shows the words each kid knows"
+   "Practice mode: 12 rotating openers, clear rules (say-it-back / guess-it rounds, by name), tests each word until mastered; Parents shows the words each kid knows",
+   "Tut announces every point change by name and number, rotating lines, sarcastic for lost points; changes made while he slept are announced when he wakes"
   ],
   "note": "Needs a Google Gemini key in Parents."
  }
