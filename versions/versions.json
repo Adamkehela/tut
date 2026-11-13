@@ -61,7 +61,7 @@
   "functions": [
    "Everything in v4",
    "Mouth made from 7 real mouth-shape pictures (closed, ah, ee, oo, oh, f, s)",
-   "The mouth moves smoothly from shape to shape (morphing, not fading); whole picture moves together, no ring around the head"
+   "Shows one sharp mouth shape at a time, switching quickly like real speech; no ring around the head"
   ],
   "note": "Needs a Google Gemini key in Parents."
  }
