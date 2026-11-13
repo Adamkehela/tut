@@ -61,7 +61,7 @@
   "functions": [
    "Everything in v4",
    "Mouth made from 7 real mouth-shape pictures (closed, ah, ee, oo, oh, f, s)",
-   "The shapes blend smoothly following his voice, like a speaking face"
+   "The mouth moves smoothly from shape to shape (morphing, not fading); whole picture moves together, no ring around the head"
   ],
   "note": "Needs a Google Gemini key in Parents."
  }
