@@ -150,6 +150,12 @@ nav button:focus-visible{outline-color:#fff}
 .lerr:empty{display:none}
 [hidden]{display:none!important}
 #lpractice{color:var(--ink);font-weight:800;width:100%}
+select{font:inherit;font-size:18px;min-height:52px;border-radius:999px;border:3px solid #E5C37A;background:#FFF6DC;padding:0 18px;color:var(--ink)}
+#rig{display:none;width:100%;height:100%}
+body.skin-cartoon #mface{display:none}
+body.skin-cartoon #rig{display:block}
+body.skin-cartoon .stage{background:var(--sky)!important}
+body.skin-cartoon .stage .sun{display:block!important;position:absolute;left:50%;top:6dvh;width:min(92vw,62dvh);height:min(92vw,62dvh);margin-left:calc(min(92vw,62dvh) / -2);border-radius:50%;background:var(--sun);box-shadow:0 0 0 26px rgba(255,200,61,.35)}
 #pfab{position:fixed;z-index:50;left:calc(100vw - 72px);top:62vh;width:56px;height:56px;border-radius:50%;border:0;padding:0;
   background:rgba(30,64,160,.55);box-shadow:0 2px 10px rgba(0,0,0,.35);opacity:.35;transition:opacity .25s,left .2s,top .2s;touch-action:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 #pfab span{position:absolute;inset:9px;border-radius:50%;background:rgba(120,160,255,.5);box-shadow:inset 0 0 0 4px rgba(255,255,255,.75)}
@@ -164,7 +170,7 @@ nav button:focus-visible{outline-color:#fff}
     <div class="stage">
       <div class="sun" aria-hidden="true"></div>
       <div class="chips" id="lturns" role="group" aria-label="Who is talking. Tap your name to tell Tut it is you."></div>
-      <button class="facebtn" id="ltalk" type="button" aria-describedby="lstatus"><canvas id="mface" role="img" aria-label="Tut the mummy"></canvas><span class="sr" id="ltalklbl">Wake Tut</span></button>
+      <button class="facebtn" id="ltalk" type="button" aria-describedby="lstatus"><canvas id="mface" role="img" aria-label="Tut the mummy"></canvas><svg id="rig" xmlns="http://www.w3.org/2000/svg" viewBox="52 24 296 372" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Tut the mummy" aria-hidden="true"><defs><clipPath id="rh"><path d="M200 86 C150 84 108 112 100 168 C94 206 100 250 118 282 C136 312 166 326 200 326 C236 326 268 310 284 280 C300 250 306 204 298 164 C290 112 250 86 200 86 Z"/></clipPath><clipPath id="rb"><path d="M84 440 C86 380 120 346 200 340 C282 346 316 384 318 440 Z"/></clipPath></defs><g transform="translate(200 440) scale(1.05) translate(-200 -440)"><path d="M84 440 C86 380 120 346 200 340 C282 346 316 384 318 440 Z" fill="#BEAD84"/><g clip-path="url(#rb)"><path d="M68.0 339.7 L104.9 347.6 L142.3 352.4 L179.6 357.6 L216.5 365.4 L254.0 369.8 L291.1 376.1 L327.9 384.5 L331.7 361.8 L295.0 352.8 L257.6 348.3 L220.7 340.3 L183.4 335.0 L146.3 328.4 L109.1 322.6 L72.0 316.0 Z" fill="#CBBB93" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M70.8 323.3 L330.8 367.3" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M69.3 331.9 L329.3 375.9" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M72.3 402.5 L109.2 395.1 L146.1 387.0 L183.4 382.1 L220.4 374.6 L257.4 367.7 L294.8 362.9 L332.0 356.9 L327.9 332.7 L290.6 338.2 L253.7 345.9 L216.7 352.9 L179.7 359.9 L142.6 366.3 L105.1 370.5 L67.7 375.5 Z" fill="#E3D7B8" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M69.2 384.3 L329.2 340.3" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M70.7 392.9 L330.7 348.9" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M68.0 373.8 L105.2 380.0 L142.0 388.2 L179.2 393.9 L216.7 398.3 L253.8 404.5 L290.7 412.5 L327.8 419.1 L331.9 394.6 L294.8 388.2 L257.5 383.1 L220.4 376.3 L183.6 368.3 L146.6 361.0 L109.0 357.2 L72.1 349.6 Z" fill="#B5A378" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M70.8 357.3 L330.8 401.3" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M69.3 365.9 L329.3 409.9" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M72.3 436.5 L108.8 426.8 L146.5 423.7 L183.7 417.7 L220.3 408.2 L257.9 404.4 L294.6 395.7 L332.3 392.5 L327.8 366.3 L291.0 374.0 L253.9 380.6 L216.5 385.6 L179.5 392.7 L142.3 398.7 L105.3 405.9 L67.8 409.9 Z" fill="#CBBB93" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M69.2 418.3 L329.2 374.3" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M70.7 426.9 L330.7 382.9" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M68.2 406.5 L105.4 412.7 L142.1 421.5 L179.4 426.9 L216.8 431.9 L253.9 438.0 L291.1 444.2 L328.2 450.8 L331.9 429.0 L294.8 422.2 L257.8 415.1 L220.7 408.5 L183.4 403.2 L146.1 397.9 L108.9 392.0 L71.8 385.1 Z" fill="#E3D7B8" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M70.8 391.3 L330.8 435.3" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M69.3 399.9 L329.3 443.9" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M72.3 470.5 L109.0 461.9 L146.1 455.2 L183.6 451.2 L220.3 442.3 L257.5 436.4 L295.0 432.1 L331.9 424.1 L328.3 402.7 L291.0 408.1 L253.9 414.6 L216.3 418.3 L179.3 425.8 L142.3 433.0 L104.9 437.5 L67.8 444.1 Z" fill="#B5A378" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M69.2 452.3 L329.2 408.3" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M70.7 460.9 L330.7 416.9" stroke="#5E4B30" stroke-width="1" opacity=".16"/></g><path d="M84 440 C86 380 120 346 200 340 C282 346 316 384 318 440 Z" fill="none" stroke="#4A3A26" stroke-width="3"/><path d="M166 296 L236 296 L244 356 L158 356 Z" fill="#BEAD84" stroke="#4A3A26" stroke-width="3" stroke-linejoin="round"/><path d="M162 328 L242 320" stroke="#5E4B30" stroke-width="1.6" opacity=".6"/><path d="M160 344 L244 340" stroke="#5E4B30" stroke-width="1.6" opacity=".6"/><path d="M132 350 Q200 408 268 350" fill="none" stroke="#B8892B" stroke-width="15" stroke-dasharray="34 10 22 14 40 8"/><path d="M138 362 Q200 414 262 362" fill="none" stroke="#3E8F86" stroke-width="4" stroke-dasharray="20 16 30 12"/><g id="rHead"><g id="rRibA"><path d="M196 90 C188 66 212 58 204 36" fill="none" stroke="#5E4B30" stroke-width="15" stroke-opacity=".7"/><path d="M196 90 C188 66 212 58 204 36" fill="none" stroke="#D9CBA6" stroke-width="12"/><path d="M198 32 l-2.0 11" stroke="#D9CBA6" stroke-width="2.4" stroke-linecap="round"/><path d="M202 32 l-0.7 11" stroke="#D9CBA6" stroke-width="2.4" stroke-linecap="round"/><path d="M206 32 l0.7 11" stroke="#D9CBA6" stroke-width="2.4" stroke-linecap="round"/><path d="M210 32 l2.0 11" stroke="#D9CBA6" stroke-width="2.4" stroke-linecap="round"/></g><g id="rRibB"><path d="M270 112 C296 96 318 110 332 90" fill="none" stroke="#5E4B30" stroke-width="16" stroke-opacity=".7"/><path d="M270 112 C296 96 318 110 332 90" fill="none" stroke="#E3D7B8" stroke-width="13"/><path d="M327 86 l-2.0 11" stroke="#E3D7B8" stroke-width="2.4" stroke-linecap="round"/><path d="M331 86 l-0.7 11" stroke="#E3D7B8" stroke-width="2.4" stroke-linecap="round"/><path d="M335 86 l0.7 11" stroke="#E3D7B8" stroke-width="2.4" stroke-linecap="round"/><path d="M339 86 l2.0 11" stroke="#E3D7B8" stroke-width="2.4" stroke-linecap="round"/></g><path d="M200 86 C150 84 108 112 100 168 C94 206 100 250 118 282 C136 312 166 326 200 326 C236 326 268 310 284 280 C300 250 306 204 298 164 C290 112 250 86 200 86 Z" fill="#CBBB93"/><g clip-path="url(#rh)"><path d="M80.8 93.7 L115.2 93.7 L149.5 91.5 L183.6 87.8 L218.0 87.4 L252.2 83.9 L286.6 83.6 L320.9 81.1 L319.1 52.4 L284.9 55.9 L250.5 56.4 L216.3 59.6 L182.0 61.5 L147.6 62.0 L113.5 66.6 L79.2 67.8 Z" fill="#D9CBA6" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M79.7 75.8 L319.7 61.0" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.3 86.0 L320.3 71.3" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.6 105.1 L114.0 104.3 L148.2 108.4 L182.5 108.4 L216.7 109.8 L251.1 108.8 L285.3 111.3 L319.7 110.5 L320.4 84.6 L286.0 85.4 L251.8 84.0 L217.5 81.6 L183.2 81.8 L148.9 80.9 L114.6 80.7 L80.4 78.3 Z" fill="#D9CBA6" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M80.1 86.1 L320.1 92.8" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.9 95.9 L319.9 102.6" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.3 121.3 L113.5 125.0 L147.8 125.6 L182.2 126.1 L216.4 129.7 L250.8 129.9 L285.0 133.0 L319.2 135.9 L320.8 106.7 L286.4 105.6 L252.1 104.4 L218.0 99.6 L183.6 100.3 L149.3 98.6 L115.0 97.4 L80.8 92.6 Z" fill="#B5A378" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M80.3 102.6 L320.3 115.2" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.8 112.9 L319.8 125.6" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.1 141.4 L113.4 143.1 L147.6 146.4 L182.0 146.8 L216.3 149.4 L250.5 152.8 L284.9 153.6 L319.0 158.4 L320.9 130.8 L286.8 125.6 L252.3 125.4 L218.0 124.1 L183.8 121.0 L149.4 119.5 L115.1 117.4 L80.9 113.9 Z" fill="#E3D7B8" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M80.4 121.8 L320.4 137.9" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.7 132.1 L319.7 148.2" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.0 161.8 L113.3 164.8 L147.6 166.9 L181.9 168.5 L216.3 170.2 L250.5 173.4 L284.8 175.9 L319.0 179.2 L321.0 150.7 L286.8 147.3 L252.2 148.2 L218.1 144.0 L183.8 141.5 L149.6 138.3 L115.2 137.5 L81.0 133.4 Z" fill="#BEAD84" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M80.4 142.7 L320.4 159.4" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.7 152.4 L319.7 169.0" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.2 192.2 L114.5 190.3 L148.8 189.6 L183.1 190.6 L217.4 190.8 L251.7 190.0 L285.9 188.1 L320.2 187.7 L319.7 158.6 L285.5 161.6 L251.2 158.9 L216.9 161.0 L182.6 162.5 L148.3 161.8 L114.0 161.8 L79.7 162.1 Z" fill="#BEAD84" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M79.9 172.0 L319.9 168.0" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.1 182.7 L320.1 178.7" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.6 215.9 L114.9 215.2 L149.2 212.9 L183.4 210.5 L217.8 210.7 L252.0 207.3 L286.2 205.5 L320.6 204.6 L319.4 178.3 L285.2 182.3 L250.9 182.2 L216.5 182.7 L182.2 184.5 L148.1 188.2 L113.8 189.3 L79.4 190.4 Z" fill="#CBBB93" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M79.8 197.7 L319.8 187.0" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.2 207.0 L320.2 196.2" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.2 225.4 L113.5 225.9 L147.8 229.0 L182.1 229.7 L216.3 232.2 L250.6 233.7 L284.9 236.2 L319.2 237.2 L320.8 207.2 L286.4 206.9 L252.2 204.9 L218.0 201.2 L183.6 200.1 L149.3 199.3 L115.1 195.6 L80.7 196.7 Z" fill="#D9CBA6" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M80.3 204.0 L320.3 216.5" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.7 214.6 L319.7 227.1" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.5 255.2 L114.7 252.4 L149.0 251.6 L183.3 252.4 L217.5 248.8 L251.9 249.2 L286.1 247.4 L320.4 245.7 L319.5 219.1 L285.3 223.0 L251.0 222.1 L216.8 225.1 L182.4 223.1 L148.1 224.9 L113.8 226.1 L79.6 228.5 Z" fill="#C4B28A" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M79.8 236.1 L319.8 228.3" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.1 245.8 L320.1 238.0" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.5 276.1 L114.8 273.7 L149.1 273.6 L183.4 272.2 L217.6 269.7 L252.0 270.4 L286.2 268.1 L320.5 266.8 L319.5 238.4 L285.1 238.0 L250.9 241.7 L216.6 240.7 L182.3 241.4 L148.0 242.9 L113.7 244.7 L79.5 248.7 Z" fill="#C4B28A" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M79.8 255.7 L319.8 246.9" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.2 266.3 L320.2 257.5" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.7 298.6 L115.0 298.9 L149.3 297.6 L183.6 295.0 L217.9 293.7 L252.1 291.8 L286.4 288.7 L320.8 289.9 L319.2 256.3 L285.0 258.1 L250.7 260.3 L216.4 261.5 L182.2 265.3 L147.9 265.9 L113.6 266.3 L79.3 268.7 Z" fill="#BEAD84" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M79.7 278.0 L319.7 267.0" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.2 289.0 L320.2 278.1" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M79.9 314.1 L114.2 313.4 L148.5 313.7 L182.8 315.3 L217.1 317.3 L251.3 317.3 L285.6 314.5 L319.9 317.0 L320.1 285.3 L285.8 286.5 L251.5 286.7 L217.2 287.2 L182.9 286.8 L148.7 286.4 L114.4 285.6 L80.1 284.7 Z" fill="#BEAD84" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M80.0 294.3 L320.0 295.7" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.0 305.2 L320.0 306.5" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.1 340.4 L114.4 340.2 L148.6 337.5 L182.9 337.6 L217.2 338.7 L251.5 339.3 L285.8 337.2 L320.1 339.0 L319.9 305.3 L285.6 307.3 L251.4 306.8 L217.1 307.1 L182.8 306.5 L148.5 307.4 L114.2 309.1 L79.9 307.8 Z" fill="#CBBB93" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M80.0 317.1 L320.0 316.0" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M80.0 328.5 L320.0 327.4" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M101.7 339.3 L125.1 328.3 L146.4 313.6 L168.3 300.1 L190.4 286.9 L213.1 274.5 L234.1 259.4 L256.4 246.4 L243.8 225.8 L221.2 238.3 L199.7 252.6 L178.6 267.5 L155.7 279.5 L134.3 293.8 L111.7 306.3 L89.1 318.7 Z" fill="#E3D7B8" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M93.5 325.9 L247.5 231.9" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M98.1 333.4 L252.1 239.4" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M313.0 312.6 L299.0 302.8 L286.2 291.3 L271.0 283.0 L256.9 273.1 L244.7 260.9 L230.3 251.6 L215.9 242.1 L203.1 259.1 L217.5 268.6 L230.0 280.5 L244.7 289.5 L258.3 299.9 L271.1 311.4 L285.9 320.3 L300.3 329.5 Z" fill="#B5A378" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M303.4 325.5 L207.4 253.5" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M308.2 319.1 L212.2 247.1" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path id="rCav" d="M116 188 C140 172 176 180 200 192 C224 178 262 172 286 188 C292 206 282 224 262 228 C240 232 216 224 200 216 C184 226 158 234 136 228 C114 222 110 202 116 188 Z" fill="#2A1F1C" transform="translate(0 208) scale(1 .78) translate(0 -208)"/><ellipse id="rEyeL" cx="158" cy="207" rx="20" ry="5" fill="#F3E29A"/><ellipse id="rPupL" cx="160" cy="207" rx="4.2" ry="4.2" fill="#141010"/><ellipse id="rEyeR" cx="243" cy="205" rx="19" ry="5" fill="#F3E29A"/><ellipse id="rPupR" cx="245" cy="205" rx="4.2" ry="4.2" fill="#141010"/><path id="rLidL" d="M140 208 Q158 216 176 207" stroke="#8C7A55" stroke-width="4" fill="none" stroke-linecap="round" opacity="0"/><path id="rLidR" d="M226 206 Q243 214 260 205" stroke="#8C7A55" stroke-width="4" fill="none" stroke-linecap="round" opacity="0"/><g id="rBrowL"><path d="M-54.0 14.5 L-38.6 14.0 L-23.1 11.9 L-7.7 13.7 L7.7 12.5 L23.1 11.6 L38.6 11.6 L54.0 12.1 L54.0 -11.9 L38.6 -13.0 L23.1 -13.8 L7.7 -13.4 L-7.7 -12.4 L-23.1 -12.0 L-38.6 -11.3 L-54.0 -11.7 Z" fill="#D9CBA6" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M-54.0 -5.2 L54.0 -5.2" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M-54.0 4.3 L54.0 4.3" stroke="#5E4B30" stroke-width="1" opacity=".16"/></g><g id="rBrowR"><path d="M-54.0 12.6 L-38.6 12.1 L-23.1 12.6 L-7.7 11.4 L7.7 13.0 L23.1 13.8 L38.6 13.8 L54.0 13.4 L54.0 -13.6 L38.6 -11.5 L23.1 -12.9 L7.7 -12.6 L-7.7 -13.0 L-23.1 -11.3 L-38.6 -12.2 L-54.0 -12.3 Z" fill="#C4B28A" stroke="#5E4B30" stroke-width="1.6" stroke-opacity=".6" stroke-linejoin="round"/><path d="M-54.0 -5.0 L54.0 -5.0" stroke="#5E4B30" stroke-width="1" opacity=".16"/><path d="M-54.0 4.2 L54.0 4.2" stroke="#5E4B30" stroke-width="1" opacity=".16"/></g><ellipse cx="132" cy="258" rx="22" ry="14" fill="#6B5433" opacity=".2"/><ellipse cx="262" cy="140" rx="26" ry="12" fill="#6B5433" opacity=".2"/><ellipse cx="236" cy="300" rx="20" ry="10" fill="#6B5433" opacity=".2"/><ellipse cx="150" cy="128" rx="16" ry="9" fill="#6B5433" opacity=".2"/><path d="M256 252 l8 10 l-5 8 l9 12" stroke="#5E4B30" stroke-width="2" fill="none" opacity=".7"/><path d="M128 150 l10 6 l-3 9" stroke="#5E4B30" stroke-width="2" fill="none" opacity=".7"/></g><path d="M200 86 C150 84 108 112 100 168 C94 206 100 250 118 282 C136 312 166 326 200 326 C236 326 268 310 284 280 C300 250 306 204 298 164 C290 112 250 86 200 86 Z" fill="none" stroke="#4A3A26" stroke-width="3"/><g id="rNose"><path d="M190 238 Q200 258 212 240" fill="none" stroke="#6A5636" stroke-width="4" stroke-linecap="round" opacity=".85"/><path id="rWr" d="M186 226 l8 5 M216 228 l-8 5 M194 220 l12 0" fill="none" stroke="#6A5636" stroke-width="2.5" stroke-linecap="round" opacity="0"/></g><path id="rMouth" d="" fill="#2A1F1C" stroke="#5E4B30" stroke-width="1.5" stroke-linejoin="round"/><path id="rThr" d="" stroke="#E3D7B8" stroke-width="2.5" stroke-linecap="round" fill="none"/><path id="rCrease" d="M250 258 q8 7 3 17" fill="none" stroke="#5E4B30" stroke-width="3" stroke-linecap="round" opacity=".8"/><path d="M92 106 L176 96 L180 118 L152 125 L142 116 L98 128 Z" fill="#B8892B" stroke="#6E4F14" stroke-width="2" stroke-linejoin="round"/><path d="M214 96 L306 108 L302 130 L264 121 L252 127 L216 118 Z" fill="#B8892B" stroke="#6E4F14" stroke-width="2" stroke-linejoin="round"/><g transform="rotate(24 222 96)"><path d="M222 58 C210 72 212 92 222 96 C232 92 234 72 222 58 Z" fill="#B8892B" stroke="#6E4F14" stroke-width="2"/><circle cx="222" cy="80" r="4" fill="#9C3B22"/></g><g id="rRibC"><path d="M112 268 C90 290 106 318 90 344 C82 360 94 380 84 400" fill="none" stroke="#5E4B30" stroke-width="18" stroke-opacity=".7"/><path d="M112 268 C90 290 106 318 90 344 C82 360 94 380 84 400" fill="none" stroke="#D9CBA6" stroke-width="15"/><path d="M78 400 l-2.0 11" stroke="#D9CBA6" stroke-width="2.4" stroke-linecap="round"/><path d="M82 400 l-0.7 11" stroke="#D9CBA6" stroke-width="2.4" stroke-linecap="round"/><path d="M86 400 l0.7 11" stroke="#D9CBA6" stroke-width="2.4" stroke-linecap="round"/><path d="M90 400 l2.0 11" stroke="#D9CBA6" stroke-width="2.4" stroke-linecap="round"/></g><g id="rRibD"><path d="M296 238 C324 252 310 284 328 302 C338 314 330 332 342 346" fill="none" stroke="#5E4B30" stroke-width="17" stroke-opacity=".7"/><path d="M296 238 C324 252 310 284 328 302 C338 314 330 332 342 346" fill="none" stroke="#C4B28A" stroke-width="14"/><path d="M336 346 l-2.0 11" stroke="#C4B28A" stroke-width="2.4" stroke-linecap="round"/><path d="M340 346 l-0.7 11" stroke="#C4B28A" stroke-width="2.4" stroke-linecap="round"/><path d="M344 346 l0.7 11" stroke="#C4B28A" stroke-width="2.4" stroke-linecap="round"/><path d="M348 346 l2.0 11" stroke="#C4B28A" stroke-width="2.4" stroke-linecap="round"/></g></g></g></svg><span class="sr" id="ltalklbl">Wake Tut</span></button>
       <svg class="dunes" viewBox="0 0 400 64" preserveAspectRatio="none" aria-hidden="true"><path d="M250 40 L292 4 L334 40 Z" fill="#DDB45C"/><path d="M306 44 L336 18 L366 44 Z" fill="#EBC878"/><path d="M0 40 C60 14 120 20 180 38 C240 54 300 30 400 36 L400 64 L0 64 Z" fill="#EBC878"/><path d="M0 52 C80 34 150 56 230 46 C300 38 350 50 400 46 L400 64 L0 64 Z" fill="#F8E6B8"/></svg>
     </div>
     <div class="under">
@@ -260,7 +266,8 @@ nav button:focus-visible{outline-color:#fff}
         <h2>Live Tut</h2>
         <label for="gk">Google Gemini key<input id="gk" type="password" autocomplete="off" spellcheck="false"></label>
         <label for="gv">Voice<input id="gv" type="text" maxlength="30" autocomplete="off"></label>
-        <label for="gt">Arabic teaching: <b id="gtv">3</b>/10<input id="gt" type="range" min="0" max="10" step="1" value="3"></label>
+        <label for="gskin">Tut's look<select id="gskin"><option value="mummy">Realistic mummy</option><option value="cartoon">Cartoon mummy (from v2)</option></select></label>
+        <label for="gt"><span>Arabic teaching: <b id="gtv">3</b>/10</span><input id="gt" type="range" min="0" max="10" step="1" value="3"></label>
         <p class="muted">0 = only Arabic when it comes up by itself. 3 = a new word or phrase every few minutes. 10 = Arabic in nearly everything he says. You can also change it in instructions mode ("Tut, seriously... teach more Arabic").</p>
         <p class="muted" id="gkmsg">The key stays on this device. While Tut is awake, the microphone sound goes to Google.</p>
       </div>
@@ -325,7 +332,7 @@ var D = {"vis": {"box": [308, 572, 412, 256], "m": "data:image/jpeg;base64,/9j/4
 var KEY = 'tut-v1', $ = function (id) { return document.getElementById(id); };
 function today() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
 var S = { names: ['Child 1', 'Child 2', 'Child 3', ''], pts: [0, 0, 0, 0], day: today(), dpts: [0, 0, 0, 0], goal: 1000, reward: 'Family reward', idx: 0, turn: 0, importId: '', mem: [], vp: [null, null, null, null], pn: ['', ''], pvp: [null, null], rules: [] };
-try { var raw = localStorage.getItem(KEY); if (raw) { var o = JSON.parse(raw); for (var k in S) if (o[k] !== undefined) S[k] = o[k]; } } catch (e) {}
+try { var raw = localStorage.getItem(KEY); if (raw) { var o = JSON.parse(raw); for (var k in o) if (o[k] !== undefined) S[k] = o[k]; } } catch (e) {}
 while (S.names.length < 4) S.names.push(''); while (S.pts.length < 4) S.pts.push(0); while (S.dpts.length < 4) S.dpts.push(0);
 if (S.day !== today()) { S.day = today(); S.dpts = [0, 0, 0, 0]; }
 function active() { var a = []; S.names.forEach(function (n, i) { if (n) a.push(i); }); return a; }
@@ -1309,12 +1316,13 @@ var MOODS = {
 };
 var R = { cur: {}, mood: 'asleep', until: 0, open: 0, wide: 0, blink: 0, nextBlink: 0, gx: 0, gy: 0, nextGaze: 0, buf: null, fbuf: null, rig: null, cv: null };
 (function () { var k; for (k in MOODS.asleep) R.cur[k] = MOODS.asleep[k]; })();
-function rigMood(m, ms) { if (!MOODS[m]) return; R.mood = m; R.until = ms ? Date.now() + ms : 0; }
+function rigMood(m, ms) { try { CART.mood(m, ms); } catch (e) {} if (!MOODS[m]) return; R.mood = m; R.until = ms ? Date.now() + ms : 0; }
 function rigRest() { return L.on ? 'sideeye' : 'asleep'; }
 function rigSize() { var c = R.cv, d = Math.min(2, window.devicePixelRatio || 1), w = Math.round(c.clientWidth * d), h = Math.round(c.clientHeight * d); if (w && h && (c.width !== w || c.height !== h)) { c.width = w; c.height = h; } }
 (function () { R.cv = document.getElementById('mface'); var im = new Image(); im.onload = function () { R.rig = MRig.create(R.cv, im, D.vis); rigSize(); }; im.src = D.mummy; window.addEventListener('resize', function () { if (R.cv) rigSize(); }); })();
 function rigFrame(now) {
   requestAnimationFrame(rigFrame);
+  if (S.skin === 'cartoon') return;
   if (!R.rig || !$('v-live').classList.contains('on')) return;
   if (R.cv.width !== Math.round(R.cv.clientWidth * Math.min(2, window.devicePixelRatio || 1))) rigSize();
   var t = now / 1000, c = R.cur, k, lvl = 0, hi = 0, i;
@@ -1417,6 +1425,110 @@ $('pdone').addEventListener('click', function () { save(); goView('live'); });
   window.addEventListener('resize', clamp); setTimeout(clamp, 50);
 })();
 
+/* ---- Cartoon skin (from v2), kept in its own scope ---- */
+var CART = (function () {
+/* ================= Living face rig ================= */
+var MOODS = {
+  sideeye:    { bLy: 0,   bLr: 0,  bRy: 0,  bRr: 0,  lid: 1,    px: 8,  py: 0,   smirk: 1,   frown: 0,   tilt: -5, nose: 0,  open0: 0 },
+  grumpy:     { bLy: 5,   bLr: 11, bRy: 23, bRr: 5,  lid: 0.7,  px: 0,  py: 0,   smirk: 0,   frown: 1,   tilt: 0,  nose: 1,  open0: 0 },
+  eyeroll:    { bLy: -8,  bLr: -6, bRy: -3, bRr: 2,  lid: 1.9,  px: 5,  py: -1,  smirk: 0.2, frown: 0.5, tilt: 7,  nose: 0,  open0: 0 },
+  suspicious: { bLy: 7,   bLr: 12, bRy: -7, bRr: -2, lid: 0.6,  px: 12, py: 0,   smirk: 0.5, frown: 0.2, tilt: -9, nose: .4, open0: 0 },
+  shocked:    { bLy: -16, bLr: -8, bRy: -9, bRr: 6,  lid: 2.4,  px: 0,  py: 0,   smirk: 0,   frown: 0,   tilt: 2,  nose: 0,  open0: 0.4 },
+  bored:      { bLy: 7,   bLr: -5, bRy: 27, bRr: 17, lid: 0.45, px: -7, py: 0.3, smirk: 0,   frown: 0.5, tilt: 8,  nose: 0,  open0: 0 },
+  laughing:   { bLy: -8,  bLr: -8, bRy: 8,  bRr: 12, lid: 0.35, px: 0,  py: 0,   smirk: 1.1, frown: 0,   tilt: -2, nose: .5, open0: 0.3 },
+  proud:      { bLy: -2,  bLr: -4, bRy: 9,  bRr: 9,  lid: 0.8,  px: 3,  py: 0,   smirk: 1.4, frown: 0,   tilt: -3, nose: 0,  open0: 0 },
+  asleep:     { bLy: 7,   bLr: -8, bRy: 30, bRr: 18, lid: 0,    px: 0,  py: 0,   smirk: 0,   frown: 0.1, tilt: 5,  nose: 0,  open0: 0.05 }
+};
+var R = { cur: {}, mood: 'asleep', until: 0, open: 0, wide: 0, blink: 0, nextBlink: 0, gx: 0, gy: 0, nextGaze: 0, tw: 0, nextTw: 0, buf: null, fbuf: null, el: {} };
+(function () { var k; for (k in MOODS.asleep) R.cur[k] = MOODS.asleep[k];
+  ['rHead', 'rEyeL', 'rEyeR', 'rPupL', 'rPupR', 'rLidL', 'rLidR', 'rBrowL', 'rBrowR', 'rNose', 'rWr', 'rMouth', 'rThr', 'rCrease', 'rRibA', 'rRibB', 'rRibC', 'rRibD'].forEach(function (id) { R.el[id] = document.getElementById(id); }); })();
+function rigMood(m, ms) { if (!MOODS[m]) return; R.mood = m; R.until = ms ? Date.now() + ms : 0; }
+function rigRest() { return L.on ? 'sideeye' : 'asleep'; }
+function mouthD(open, wide, smirk, frown) {
+  var cx = 205, cy = 289, w = 36 + 7 * wide, yl = cy + 5 * frown, yr = cy - 15 * smirk + 5 * frown, H = 4 + open * 26, up = [], lo = [], thr = '', i, u, x, by, zig;
+  for (i = 0; i <= 8; i++) {
+    u = i / 4 - 1; x = cx + w * u; by = yl + (yr - yl) * (i / 8) - (1 - u * u) * (3 + 5 * frown);
+    zig = (i === 0 || i === 8) ? 0 : (i % 2 ? 2.6 : -2.2);
+    up.push(x.toFixed(1) + ' ' + (by + zig).toFixed(1));
+    lo.push(x.toFixed(1) + ' ' + (by + (1 - u * u) * H + ((i === 0 || i === 8) ? 0 : (i % 2 ? -1.5 : 2))).toFixed(1));
+    if (i === 2 || i === 6) thr += 'M' + x.toFixed(1) + ' ' + (by + zig).toFixed(1) + ' l1.5 ' + Math.min(11, 3 + H * 0.45).toFixed(1) + ' ';
+  }
+  return ['M' + up.join(' L') + ' L' + lo.reverse().join(' L') + ' Z', thr];
+}
+function rigFrame(now) {
+  requestAnimationFrame(rigFrame);
+  if (S.skin !== 'cartoon') return;
+  if (!$('v-live').classList.contains('on')) return;
+  var t = now / 1000, c = R.cur, k, e = R.el, lvl = 0, hi = 0, i;
+  if (R.until && Date.now() > R.until) { R.until = 0; R.mood = rigRest(); }
+  if (!L.on && R.mood !== 'asleep' && !R.until) R.mood = 'asleep';
+  var g = MOODS[R.mood] || MOODS.sideeye;
+  for (k in g) c[k] += (g[k] - c[k]) * 0.14;
+  /* voice -> mouth */
+  if (L.an && L.playing.length) {
+    if (!R.buf) { R.buf = new Uint8Array(L.an.fftSize); R.fbuf = new Uint8Array(L.an.frequencyBinCount); }
+    L.an.getByteTimeDomainData(R.buf); var s = 0, v;
+    for (i = 0; i < R.buf.length; i++) { v = (R.buf[i] - 128) / 128; s += v * v; }
+    lvl = Math.min(1, Math.max(0, (Math.sqrt(s / R.buf.length) - 0.012) * 7.5));
+    L.an.getByteFrequencyData(R.fbuf); var hz = L.ac.sampleRate / L.an.fftSize, lowE = 0, hiE = 0;
+    for (i = 2; i < R.fbuf.length; i++) { var f = i * hz; if (f < 900) lowE += R.fbuf[i]; else if (f > 1800 && f < 5000) hiE += R.fbuf[i]; }
+    hi = (hiE + lowE) > 0 ? (hiE / (hiE + lowE)) * 2.4 - 0.6 : 0; hi = Math.max(-1, Math.min(1, hi));
+  }
+  R.open += (lvl - R.open) * (lvl > R.open ? 0.55 : 0.3);
+  R.wide += (hi * (lvl > 0.05 ? 1 : 0) - R.wide) * 0.25;
+  var open = Math.min(1, R.open + c.open0), talking = R.open > 0.04;
+  /* blink + gaze + nose twitch */
+  if (now > R.nextBlink) { R.blink = now + 130; R.nextBlink = now + 1800 + Math.random() * 4200; }
+  if (now > R.nextGaze) { R.gx = (Math.random() - 0.5) * (talking ? 5 : 9); R.gy = (Math.random() - 0.5) * 0.5; R.nextGaze = now + 900 + Math.random() * 2600; }
+  if (now > R.nextTw) { R.tw = now + 260; R.nextTw = now + 5000 + Math.random() * 9000; }
+  var lid = c.lid * (now < R.blink ? 0.05 : 1) * (1 + R.open * 0.25), ry = 5 * lid;
+  var px = c.px * (talking ? 0.45 : 1) + R.gx, py = (c.py + R.gy) * ry * 0.8;
+  if (c.lid < 0.08 || now < R.blink) { e.rEyeL.setAttribute('ry', 0.01); e.rEyeR.setAttribute('ry', 0.01); e.rPupL.setAttribute('ry', 0.01); e.rPupR.setAttribute('ry', 0.01); e.rLidL.setAttribute('opacity', 1); e.rLidR.setAttribute('opacity', 1); }
+  else {
+    e.rLidL.setAttribute('opacity', 0); e.rLidR.setAttribute('opacity', 0);
+    e.rEyeL.setAttribute('ry', ry.toFixed(2)); e.rEyeR.setAttribute('ry', ry.toFixed(2));
+    var pr = Math.min(4.2, ry * 0.95);
+    e.rPupL.setAttribute('ry', pr.toFixed(2)); e.rPupR.setAttribute('ry', pr.toFixed(2));
+    e.rPupL.setAttribute('cx', (160 + px).toFixed(1)); e.rPupR.setAttribute('cx', (245 + px).toFixed(1));
+    e.rPupL.setAttribute('cy', (207 + py).toFixed(1)); e.rPupR.setAttribute('cy', (205 + py).toFixed(1));
+  }
+  /* brows lift on stressed sounds */
+  var em = R.open * 5;
+  e.rBrowL.setAttribute('transform', 'translate(152 ' + (190 + c.bLy - em).toFixed(1) + ') rotate(' + (8.7 + c.bLr).toFixed(1) + ')');
+  e.rBrowR.setAttribute('transform', 'translate(250 ' + (167 + c.bRy - em * 0.6).toFixed(1) + ') rotate(' + (-18.8 + c.bRr).toFixed(1) + ')');
+  /* nose */
+  var tw = now < R.tw ? Math.sin((R.tw - now) / 260 * Math.PI * 3) * 2.2 : 0, nz = Math.min(1, c.nose + R.open * 0.25);
+  e.rNose.setAttribute('transform', 'translate(' + tw.toFixed(1) + ' ' + (-nz * 3.5 - R.open * 1.5).toFixed(1) + ') translate(201 246) scale(' + (1 + nz * 0.16).toFixed(3) + ' ' + (1 - nz * 0.1).toFixed(3) + ') translate(-201 -246)');
+  e.rWr.setAttribute('opacity', (nz * 0.8).toFixed(2));
+  /* mouth */
+  var md = mouthD(open, R.wide, c.smirk, c.frown); e.rMouth.setAttribute('d', md[0]); e.rThr.setAttribute('d', md[1]);
+  e.rCrease.setAttribute('opacity', Math.max(0, Math.min(0.85, c.smirk * 0.8)).toFixed(2));
+  /* head: breathing, sway, nods with speech */
+  var rot = c.tilt + Math.sin(t * 0.7) * 1.2 + (talking ? Math.sin(t * 5.3) * 1.6 * R.open + Math.sin(t * 2.1) * 1.2 : 0);
+  var dy = Math.sin(t * 1.3) * 1.6 + R.open * 2.5 + (R.mood === 'laughing' ? Math.abs(Math.sin(t * 11)) * 4 : 0);
+  e.rHead.setAttribute('transform', 'translate(0 ' + dy.toFixed(2) + ') rotate(' + rot.toFixed(2) + ' 200 330)');
+  var sw = Math.sin(t * 1.9) * 2 + rot * -0.6;
+  e.rRibA.setAttribute('transform', 'rotate(' + (sw * 1.5).toFixed(2) + ' 196 90)'); e.rRibB.setAttribute('transform', 'rotate(' + sw.toFixed(2) + ' 270 112)');
+  e.rRibC.setAttribute('transform', 'rotate(' + (sw * 0.9).toFixed(2) + ' 112 268)'); e.rRibD.setAttribute('transform', 'rotate(' + (-sw * 0.8).toFixed(2) + ' 296 238)');
+}
+requestAnimationFrame(rigFrame);
+var VIBE = [
+  [/\b(ha ?ha|hehe|lol|that'?s funny)/i, 'laughing', 3500],
+  [/\b(u+gh+|bru+h|seriously|really\?|ya salam|oh great|here we go)/i, 'eyeroll', 3500],
+  [/\b(what\?|wait|whoa|hold up|excuse me|you what)/i, 'shocked', 2600],
+  [/\b(nope|no way|fil mishmish|not happening|absolutely not|refuse|la'|forget it|fakes)\b/i, 'grumpy', 4000],
+  [/\b(suspicious|sus\b|hmm+|sure you did|oh really|istanna)/i, 'suspicious', 3500],
+  [/\b(boring|tired|so sleepy|whatever|yawn|i was asleep)/i, 'bored', 4000],
+  [/\b(fine\.|gamed|not terrible|not bad|okay,? that|kebir|points)/i, 'proud', 4000]
+];
+function vibeFrom(text) { if (Date.now() < L.faceT) return; for (var i = 0; i < VIBE.length; i++) if (VIBE[i][0].test(text)) { rigMood(VIBE[i][1], VIBE[i][2]); return; } }
+
+return { mood: rigMood };
+})();
+
+function applySkin() { document.body.classList.toggle('skin-cartoon', S.skin === 'cartoon'); try { $('gskin').value = S.skin || 'mummy'; } catch (e) {} }
+$('gskin').addEventListener('change', function () { S.skin = this.value; save(); applySkin(); });
+applySkin();
 face('sideeye'); drawTurns(); drawPhrase(); drawLive(); if (window.TUT_IMPORTED) $('lbubble').textContent = window.TUT_IMPORTED;
 </script>
 <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});</script>
