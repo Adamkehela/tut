@@ -85,7 +85,8 @@
    "Simpler app: no tab bar. One floating, draggable, see-through blue Parents button (like the iPhone AssistiveTouch circle) opens a PIN screen; entering the PIN puts Tut to sleep. 'Save and go back to Tut' button. Old Practice tab replaced by one 'Practice with Tut' button; Favors moved into Parents",
    "Pick Tut's look with pictures at the top of Parents: realistic mummy or the cartoon mummy from v2",
    "Fix: PIN, teaching level, voice samples and look are now kept after the app restarts",
-   "Practice button fixed: Tut starts the word challenge out loud right away (also when he was asleep)"
+   "Practice button fixed: Tut starts the word challenge out loud right away (also when he was asleep)",
+   "Practice mode: 12 rotating openers, clear rules (say-it-back / guess-it rounds, by name), tests each word until mastered; Parents shows the words each kid knows"
   ],
   "note": "Needs a Google Gemini key in Parents."
  }

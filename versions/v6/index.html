@@ -252,6 +252,7 @@ body.skin-cartoon .stage .sun{display:block!important;position:absolute;left:50%
         <div class="nile"><i id="fambar"></i></div>
       </div>
     </div>
+      <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered (right 3 times, last 2 in a row). Tut tests the others in Practice.</p><div id="wordlist"></div></div>
       <div class="group">
         <h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
@@ -561,6 +562,10 @@ function livePrompt() {
     '4/10: most conversations include a couple of new Masri words or phrases.', '5/10: about every other reply includes Masri, and you actively look for chances to teach.',
     '6/10: Masri in most replies; you teach something new every minute or two.', '7/10: you use Masri constantly and turn many moments into a chance to learn a word.',
     '8/10: you speak about half in Masri, always explaining through context.', '9/10: you speak mostly Masri with English support.', '10/10: you speak Masri almost all the time, with just enough English to be understood.'];
+  var wl = active().map(function (k) { var bk = (S.words || {})[k] || {}, ks = Object.keys(bk).sort(function (x, y) { return (bk[y].last || 0) - (bk[x].last || 0); }).slice(0, 30);
+    if (!ks.length) return '- ' + S.names[k] + ': no words recorded yet.';
+    var m = ks.filter(function (x) { return bk[x].mastered; }).map(function (x) { return bk[x].tr + ' (' + bk[x].en + ')'; }), g = ks.filter(function (x) { return !bk[x].mastered; }).map(function (x) { return bk[x].tr + ' (' + bk[x].en + ')'; });
+    return '- ' + S.names[k] + ': knows ' + (m.join(', ') || 'none yet') + '. Still learning: ' + (g.join(', ') || 'none') + '.'; }).join('\n');
   var said = (S.said || []).slice(-12).map(function (x) { return '- ' + x.slice(0, 90); }).join('\n') || '- (nothing yet)';
   var rules = S.rules.length ? S.rules.map(function (r, i) { return (i + 1) + '. ' + r.n + ' [' + r.by + ', ' + r.d + ']'; }).join('\n') : '(none yet)';
   var list = D.phr.map(function (p) { return p.ar + ' = ' + p.en; }).join('; ');
@@ -586,6 +591,7 @@ function livePrompt() {
 '',
 'ARABIC TEACHING LEVEL (set by the parents): ' + LV[lv],
 '- How you teach at any level: grab real openings in the conversation, never a lesson. Someone is hungry, so it is "جعان؟ ja\'ān? Hungry, huh." Someone wins, so it is "جامد! gāmed!". Something is boring, so it is "ممل. mumill. Boring. Like this whole thing." Say the Masri, then make the meaning obvious from the moment or with a quick English echo, and call show_phrase so it appears on screen.',
+'- Call record_word when you teach a kid a word (result taught) and when they use it right later (result right).',
 '- Then use the same word again later in the conversation so it sticks, and react (coolly) when a kid uses it back; give points with award_points.',
 '- Prefer useful everyday words for kids: food, feelings, play, family, "come here", "hurry", "wait", "cool", "no way", numbers, colours. Pick ones they have not had yet (check your memory).',
 '- Only during conversations WITH you. The teaching level never makes you butt into conversations that are not with you.',
@@ -603,6 +609,16 @@ function livePrompt() {
 '- If you are not sure the words were meant for you, say nothing. Being ignored for a minute costs nothing; butting in when nobody asked is annoying.',
 '- Interjecting uninvited is something you do rarely, at most once in a long while, and only when you have something genuinely good to add, like a real person who overhears something and cannot resist. Then you go back to being quiet.',
 '- When someone IS talking with you, really engage: listen to what they actually said, answer that, remember what was said a moment ago, build on it, ask a real follow-up when you are curious, and keep the back-and-forth going for as long as they do. Match their energy: short and chill if they are chill, more lively if they are excited, calm and plain if someone is upset or tired.',
+'WORDS EACH KID KNOWS (kept by record_word):',
+wl,
+'',
+'PRACTICE MODE (only when the practice button is tapped)',
+'1. Open with the exact opener line the app gives you, in your voice.',
+'2. Then explain the game in one or two clear, simple sentences so the kids know exactly what to do. Two kinds of rounds: "Say it back": you say a NEW Masri word, they repeat it after you. "Guess it": you say the English (or describe it), they tell you the Masri word they learned before. Tell them which round it is every time ("Guess-it round. Yaseen: how do you say hungry?").',
+'3. Call each kid by name for their turn so it is fair and clear. One word at a time. show_phrase every word.',
+'4. Test each word a few times, mixed with others, until the kid gets it right at least three times (record_word tells you when it is mastered), then move on. Start with words they are still learning, mix in one or two new ones, and use mastered ones only as quick wins.',
+'5. Every answer: record_word (right, wrong or taught) and award_points when right. Wrong answers get a quick, kind correction and another try later, never mockery.',
+'6. After about 6 to 8 rounds or when they lose interest, wrap up in one line (who nailed what) and go back to normal.',
 '- PRACTICE: when a message says PRACTICE BUTTON, the kids are asking you directly. Always answer it out loud immediately and run the word challenge it describes. This overrides staying quiet.',
 '- CHAOS: if a [app: CHAOS ALERT] note arrives, or you can hear kids screaming, yelling or all talking over each other nonstop, do not wait politely for it to end. Cut in straight away, call it out like a cool older cousin who has had enough ("Whoa. WHOA. بس! What is this, a camel market? One at a time."), tell them to stop now and speak one at a time, then listen. Fresh wording each time. If it keeps going after you called it out, be firmer and shorter ("خلاص بقى. I am not talking to a stampede."). Once it calms down, drop it and carry on normally.',
 '- Never say stage directions, sound labels or notes about silence out loud (like "no speech", "pause", "silence", "[laughs]"). If you have nothing to say, produce nothing.',
@@ -697,6 +713,8 @@ function setupMsg(stage) {
   if (stage < 3) m.tools = [{ functionDeclarations: [
     { name: 'award_points', description: 'Give points to one child who just used Egyptian Arabic in the conversation. Returns every child\'s points for today.',
       parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'The child\'s name exactly as listed' }, points: { type: 'INTEGER', description: '10 for a word or copied phrase, 20 for their own phrase' } }, required: ['child', 'points'] } },
+    { name: 'record_word', description: 'Keep the record of which Masri words each kid knows. Call it every time a kid is taught a word, gets a word right, or gets it wrong (in practice and in normal chat).',
+      parameters: { type: 'OBJECT', properties: { child: { type: 'STRING' }, say_it: { type: 'STRING', description: 'English-letters pronunciation, e.g. gā\'ān' }, arabic: { type: 'STRING' }, meaning: { type: 'STRING' }, result: { type: 'STRING', description: 'taught, right or wrong' } }, required: ['child', 'say_it', 'meaning', 'result'] } },
     { name: 'show_phrase', description: 'Put the Egyptian Arabic phrase you just used on the screen.',
       parameters: { type: 'OBJECT', properties: { arabic: { type: 'STRING', description: 'The phrase in Arabic script' }, say_it: { type: 'STRING', description: 'How to say it, in English letters' }, meaning: { type: 'STRING', description: 'Short English meaning' } }, required: ['say_it', 'meaning'] } },
     { name: 'remember', description: 'Save one short note worth remembering in future hangouts. Not for insults or nonsense.',
@@ -725,6 +743,16 @@ function runTool(c) {
     var i = findKid(a.child); if (i < 0) return { error: 'No child called ' + a.child + '. The children are: ' + active().map(function (x) { return S.names[x]; }).join(', ') };
     var pts = Number(a.points) >= 20 ? 20 : 10; award(i, pts);
     return { result: 'ok', gave: pts, to: S.names[i], points_today: scores() };
+  }
+  if (c.name === 'record_word') {
+    var ki = findKid(a.child); if (ki < 0) return { error: 'No child called ' + a.child };
+    S.words = S.words || {}; var bk = S.words[ki] = S.words[ki] || {}, key = String(a.say_it || a.arabic || '').toLowerCase().trim().slice(0, 40); if (!key) return { error: 'Give say_it' };
+    var w = bk[key] = bk[key] || { ar: '', tr: '', en: '', right: 0, wrong: 0, streak: 0, first: Date.now() };
+    w.ar = String(a.arabic || w.ar).slice(0, 40); w.tr = String(a.say_it || w.tr).slice(0, 40); w.en = String(a.meaning || w.en).slice(0, 60); w.last = Date.now();
+    var res = String(a.result || '').toLowerCase();
+    if (res === 'right') { w.right++; w.streak++; } else if (res === 'wrong') { w.wrong++; w.streak = 0; }
+    w.mastered = w.right >= 3 && w.streak >= 2; save();
+    return { result: 'ok', child: S.names[ki], word: w.tr, right: w.right, wrong: w.wrong, mastered: w.mastered, note: w.mastered ? 'Mastered. Move on to another word.' : 'Not mastered yet: test it again later.' };
   }
   if (c.name === 'show_phrase') {
     if (!a.say_it && !a.arabic) return { error: 'Give say_it and meaning' };
@@ -1400,8 +1428,10 @@ $('plforgot').addEventListener('click', function () {
 $('plchange').addEventListener('click', function () { PL.changing = true; PL.open = false; plockShow(); window.scrollTo(0, 0); });
 document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { PL.open = false; PL.changing = false; if ($('v-par').classList.contains('on')) plockShow(); } });
 /* ---- Practice: one button, Tut runs it ---- */
+var POPEN = ["Oh, you are asking for a class now? Alright, alright. Tut academy is open.", "Wait, you WANT to practise? Who are you and what did you do with the kids?", "Fine. Lesson time. Nobody leaves until somebody says something in Arabic.", "Ooh, look at you, asking for homework. I am almost impressed.", "Practice? On purpose? OK, sit down, phones away, let's go.", "Alright, alright. School of Tut. Tuition is one word in Masri.", "A class, huh? Fine. But I am the teacher and the teacher is grumpy.", "You pressed the button. There is no going back now. Yalla.", "Okay, brain time. Let's see what stayed in there since last time.", "Practice mode. Finally, something useful. Let's go.", "Oh, so NOW you want Arabic. Good. Ears open.", "Alright, quick round. Short and painless. Mostly painless."];
+function practiceOpener() { var used = S.popen || [], c = POPEN.map(function (x, i) { return i; }).filter(function (i) { return used.indexOf(i) < 0; }); if (!c.length) { used = []; c = POPEN.map(function (x, i) { return i; }); } var k = c[Math.floor(Math.random() * c.length)]; used.push(k); S.popen = used.slice(-8); save(); return POPEN[k]; }
 function practiceSend(viaText) {
-  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise Masri with them. Start straight away, out loud: quick, fun word challenge (about 2 minutes). Say the first Masri word or phrase now, call show_phrase for it, and ask them to say it back or guess what it means. Use words from your memory they have learned, plus one or two new ones. award_points when someone gets it. Keep it cool, not a classroom.';
+  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise Masri with them. Start straight away, out loud, following PRACTICE MODE. Open with this line (in your own voice, Masri sprinkles allowed): "' + (L.pOpen = practiceOpener()) + '" Then explain the game clearly and start the first round with the first kid by name.';
   if (!(L.ready && L.ws && L.ws.readyState === 1)) return false;
   if (!viaText && !L.noCC) L.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
   else L.ws.send(JSON.stringify({ realtimeInput: { text: msg } }));
@@ -1423,7 +1453,7 @@ function goView(v) {
 }
 function plOpened() { /* parent is in: Tut stops listening and goes quiet */
   if (L.on) { L.byUser = true; liveStop(''); }
-  drawPar(); drawFav();
+  drawPar(); drawFav(); drawWords();
 }
 $('plback').addEventListener('click', function () { goView('live'); });
 $('pdone').addEventListener('click', function () { save(); goView('live'); });
@@ -1441,6 +1471,21 @@ $('pdone').addEventListener('click', function () { save(); goView('live'); });
   b.addEventListener('click', function (e) { if (b.dataset.dragged) { delete b.dataset.dragged; e.preventDefault(); return; } wake(); goView('par'); });
   window.addEventListener('resize', clamp); setTimeout(clamp, 50);
 })();
+
+/* ---- Parents: words each kid knows ---- */
+function drawWords() {
+  var box = $('wordlist'); if (!box) return; box.textContent = '';
+  active().forEach(function (k) {
+    var bk = (S.words || {})[k] || {}, ks = Object.keys(bk).sort(function (x, y) { return (bk[y].mastered - bk[x].mastered) || ((bk[y].last || 0) - (bk[x].last || 0)); });
+    var h = document.createElement('h3'); h.style.margin = '12px 0 4px'; var nm = ks.filter(function (x) { return bk[x].mastered; }).length;
+    h.textContent = S.names[k] + ': ' + nm + ' mastered, ' + (ks.length - nm) + ' learning'; box.appendChild(h);
+    if (!ks.length) { var p = document.createElement('p'); p.className = 'muted'; p.textContent = 'No words yet.'; box.appendChild(p); }
+    ks.forEach(function (x) { var w = bk[x], r = document.createElement('div'); r.className = 'memrow';
+      var t = document.createElement('span'); t.textContent = (w.mastered ? '✓ ' : '• ') + (w.ar ? w.ar + '  ' : '') + w.tr + ' = ' + w.en + '  (' + w.right + ' right, ' + w.wrong + ' wrong)';
+      var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Delete'; b.setAttribute('aria-label', 'Delete ' + w.tr + ' for ' + S.names[k]);
+      b.addEventListener('click', function () { delete bk[x]; save(); drawWords(); }); r.appendChild(t); r.appendChild(b); box.appendChild(r); });
+  });
+}
 
 /* ---- Cartoon skin (from v2), kept in its own scope ---- */
 var CART = (function () {
