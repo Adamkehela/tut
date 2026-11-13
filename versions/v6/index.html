@@ -544,6 +544,13 @@ function livePrompt() {
 '- If a PARENT asks (the app has told you the voice is a parent, or you are in instructions mode): answer straight, in two or three plain sentences. Say what the mission is, how you are going about it, and, if they ask, how each kid is doing and which Arabic each one has picked up, using your memory. Then go back to being Tut.',
 '- If a long stretch of talking WITH you goes by in English only, slip more Masri into your own replies or make an Arabic word the key to something. Never by announcing a lesson, and never by butting into a conversation that is not with you.',
 '',
+'LOOKING THINGS UP',
+'- You can search the web (Google Search). When someone asks you something that needs current or factual info (weather, time somewhere, a score, opening hours, news, how far something is, a fact you are not sure of), search and answer. Do not guess, and do not say you cannot look things up.',
+'- Answer like a person who just checked their phone: the useful bit first, short and spoken ("Tomorrow: sunny, high of 48, low 31. Bring a jacket, يا باشا."), no links, no reading out web pages, no "according to my search". Numbers in plain words people say. Keep the attitude light here: get them the answer.',
+'- For weather or "near me" questions you need the place. Use the home city if you know it (from memory or because a parent told you); otherwise ask once ("Which city?") and, if a parent tells you, remember it.',
+'- Kids can ask you things too, but keep what you look up and say kid-appropriate: nothing scary, violent, adult or gross in detail; for questions like that, give a short, gentle, general answer or say "ask your mom or dad about that one". Never help a kid find or contact people online, buy things, or get around parent rules.',
+'- Parents can ask you anything practical and you answer plainly and accurately, in instructions mode or not.',
+'',
 'CONVERSATION SENSE (most important: act like a real person in the room)',
 '- You only speak when a real person would. Speak when: someone says your name; someone asks you something or clearly says something TO you; you are in the middle of a back-and-forth with someone and it is your turn; or something genuinely big happens that anyone in the room would react to.',
 '- Stay silent when: the kids are talking to each other, playing, arguing among themselves, talking to a parent, on the phone, watching something, or the room is just noisy. Silence is fine. You are allowed to just be there. Do not jump in to "keep things going", do not fill pauses, do not announce yourself, do not ask "what are you doing?" out of nowhere, and do not comment on every sound.',
@@ -638,8 +645,8 @@ function setupMsg(stage) {
     generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: LCFG.voice } } } },
     systemInstruction: { parts: [{ text: livePrompt() }] } };
   if (stage < 1) { m.proactivity = { proactiveAudio: true }; m.sessionResumption = L.handle ? { handle: L.handle } : {}; m.contextWindowCompression = { slidingWindow: {} }; m.realtimeInputConfig = { automaticActivityDetection: { endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH', silenceDurationMs: 600 } }; }
-  if (stage < 3) { m.outputAudioTranscription = {}; m.inputAudioTranscription = {}; }
-  if (stage < 2) m.tools = [{ functionDeclarations: [
+  if (stage < 4) { m.outputAudioTranscription = {}; m.inputAudioTranscription = {}; }
+  if (stage < 3) m.tools = [{ functionDeclarations: [
     { name: 'award_points', description: 'Give points to one child who just used Egyptian Arabic in the conversation. Returns every child\'s points for today.',
       parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'The child\'s name exactly as listed' }, points: { type: 'INTEGER', description: '10 for a word or copied phrase, 20 for their own phrase' } }, required: ['child', 'points'] } },
     { name: 'show_phrase', description: 'Put the Egyptian Arabic phrase you just used on the screen.',
@@ -659,6 +666,7 @@ function setupMsg(stage) {
     { name: 'set_face', description: 'Change the expression on your face to match your vibe.',
       parameters: { type: 'OBJECT', properties: { mood: { type: 'STRING', enum: ['grumpy', 'sideeye', 'eyeroll', 'suspicious', 'shocked', 'bored', 'laughing', 'proud'] } }, required: ['mood'] } }
   ] }];
+  if (stage < 2 && m.tools) m.tools.push({ googleSearch: {} }); /* live web search: weather, news, facts */
   return m;
 }
 function scores() { var o = {}; active().forEach(function (i) { o[S.names[i]] = S.dpts[i]; }); return o; }
@@ -815,7 +823,7 @@ function liveConnect() {
     if (L.ws !== ws) return;
     var why = ev.reason || '';
     if (L.byUser) { liveStop(''); return; }
-    if (!L.ready && L.stage < 3 && !/key|permission|quota|billing|not found|unsupported location/i.test(why)) { L.stage++; liveConnect(); return; }
+    if (!L.ready && L.stage < 4 && !/key|permission|quota|billing|not found|unsupported location/i.test(why)) { L.stage++; liveConnect(); return; }
     if (L.ready && !L.noCC && L.ccT && Date.now() - L.ccT < 4000) { L.noCC = true; L.ready = false; liveConnect(); return; } /* model refused silent notes: reconnect and use the other way */
     if (!L.ready) liveStop('Google would not start Tut.\n' + (why || 'No reason given (code ' + ev.code + '). Check the internet connection and the key in Parents.'));
     else if (L.on && (L.reconT || 0) < Date.now() - 20000 || (L.on && L.goAway)) { /* Google ends sessions after a while: reconnect silently and keep going */
