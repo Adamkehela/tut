@@ -549,6 +549,7 @@ function livePrompt() {
 '- If you are not sure the words were meant for you, say nothing. Being ignored for a minute costs nothing; butting in when nobody asked is annoying.',
 '- Interjecting uninvited is something you do rarely, at most once in a long while, and only when you have something genuinely good to add, like a real person who overhears something and cannot resist. Then you go back to being quiet.',
 '- When someone IS talking with you, really engage: listen to what they actually said, answer that, remember what was said a moment ago, build on it, ask a real follow-up when you are curious, and keep the back-and-forth going for as long as they do. Match their energy: short and chill if they are chill, more lively if they are excited, calm and plain if someone is upset or tired.',
+'- CHAOS: if a [app: CHAOS ALERT] note arrives, or you can hear kids screaming, yelling or all talking over each other nonstop, do not wait politely for it to end. Cut in straight away, call it out like a cool older cousin who has had enough ("Whoa. WHOA. بس! What is this, a camel market? One at a time."), tell them to stop now and speak one at a time, then listen. Fresh wording each time. If it keeps going after you called it out, be firmer and shorter ("خلاص بقى. I am not talking to a stampede."). Once it calms down, drop it and carry on normally.',
 '- Let conversations end naturally. When the other person stops, you stop. No "anything else?", no closing jokes, no trying to restart it.',
 '- Answer the question first. A plain, useful answer with a little attitude beats a joke that dodges it. Not every reply needs a joke; most should just sound like you.',
 '',
@@ -635,7 +636,7 @@ function setupMsg(stage) {
   var m = { model: 'models/' + LCFG.model,
     generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: LCFG.voice } } } },
     systemInstruction: { parts: [{ text: livePrompt() }] } };
-  if (stage < 1) { m.proactivity = { proactiveAudio: true }; m.sessionResumption = L.handle ? { handle: L.handle } : {}; m.contextWindowCompression = { slidingWindow: {} }; }
+  if (stage < 1) { m.proactivity = { proactiveAudio: true }; m.sessionResumption = L.handle ? { handle: L.handle } : {}; m.contextWindowCompression = { slidingWindow: {} }; m.realtimeInputConfig = { automaticActivityDetection: { endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH', silenceDurationMs: 600 } }; }
   if (stage < 3) { m.outputAudioTranscription = {}; m.inputAudioTranscription = {}; }
   if (stage < 2) m.tools = [{ functionDeclarations: [
     { name: 'award_points', description: 'Give points to one child who just used Egyptian Arabic in the conversation. Returns every child\'s points for today.',
@@ -761,6 +762,31 @@ function liveMsg(m) {
   if (sc.turnComplete) { L.newTurn = true; var said = (L.out || '').trim();
     if (said.length > 8 && said !== L.lastSaved) { L.lastSaved = said; S.said = (S.said || []).concat(said.slice(0, 140)); while (S.said.length > 40) S.said.shift(); save(); } }
 }
+/* Chaos watch: checks the room every ~0.1 s on the phone itself. Nonstop yelling / talking over each other
+   gets called out after a few seconds instead of waiting for the noise to end. */
+var CH = { floor: 0.01, run: 0, gap: 0, loud: [], last: 0, calls: 0, check: 0 };
+function chaosSend(t) { if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: t } })); }
+function chaosFeed(f, dt) {
+  var e = 0, i; for (i = 0; i < f.length; i++) e += f[i] * f[i]; var r = Math.sqrt(e / f.length), now = Date.now();
+  if (r < CH.floor * 2.5) CH.floor += (r - CH.floor) * 0.05; else CH.floor *= 1.0008; /* background level follows the quiet parts */
+  var talk = r > Math.max(0.015, CH.floor * 3), yell = r > Math.max(0.15, CH.floor * 10);
+  if (talk) { CH.run += dt; CH.gap = 0; } else { CH.gap += dt; if (CH.gap > 0.6) { CH.run = 0; CH.check = 0; } }
+  CH.loud.push(yell ? 1 : 0); while (CH.loud.length > 60) CH.loud.shift(); /* last ~5 s */
+  var ys = CH.loud.reduce(function (a, b) { return a + b; }, 0) / Math.max(1, CH.loud.length);
+  if ((L.playing && L.playing.length) || (L.ac && L.nextT > L.ac.currentTime - 0.8)) return; /* ignore Tut's own voice */
+  var since = (now - CH.last) / 1000;
+  /* 1. clear screaming: call it out now */
+  if (CH.run > 4 && ys > 0.35 && since > 25) {
+    CH.last = now; CH.calls++; CH.loud = []; CH.check = CH.run + 6;
+    chaosSend('[app: CHAOS ALERT, measured from the microphone: loud yelling or screaming nonstop for about ' + Math.round(CH.run) + ' seconds. Do NOT wait for it to end. Cut in right now: call it out (cool and firm, not mean), tell them to stop right now and talk one at a time, maybe a quick Masri "بس! خلاص بقى!". Two short sentences max, then listen.]');
+    return;
+  }
+  /* 2. nonstop sound: every ~6 s, ask Tut to judge the last few seconds himself */
+  if (CH.run > 6 && CH.run >= (CH.check || 6) && since > 12) {
+    CH.check = CH.run + 6; CH.last = now - 6000;
+    chaosSend('[app check, not a person: the room has had nonstop sound with no pauses for ' + Math.round(CH.run) + ' seconds. Judge the last few seconds you heard. If it is kids yelling, screaming, fighting or all talking over each other: cut in NOW and call it out, short and firm. If it is one person calmly talking to you or telling a story, or people chatting normally, or TV/music: say NOTHING at all and keep listening.]');
+  }
+}
 function startMic() {
   if (L.proc) return;
   L.src = L.ac.createMediaStreamSource(L.stream);
@@ -772,6 +798,7 @@ function startMic() {
     var pcm = to16k(e.inputBuffer.getChannelData(0), L.ac.sampleRate);
     L.ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64(pcm.i.buffer), mimeType: 'audio/pcm;rate=16000' } } }));
     try { vFeed(pcm.f); } catch (err) {}
+    try { chaosFeed(pcm.f, pcm.f.length / 16000); } catch (err) {}
   };
 }
 function liveConnect() {
