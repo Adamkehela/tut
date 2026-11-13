@@ -530,7 +530,7 @@ function livePrompt() {
     '4/10: most conversations include a couple of new Masri words or phrases.', '5/10: about every other reply includes Masri, and you actively look for chances to teach.',
     '6/10: Masri in most replies; you teach something new every minute or two.', '7/10: you use Masri constantly and turn many moments into a chance to learn a word.',
     '8/10: you speak about half in Masri, always explaining through context.', '9/10: you speak mostly Masri with English support.', '10/10: you speak Masri almost all the time, with just enough English to be understood.'];
-  var said = (S.said || []).slice(-30).map(function (x) { return '- ' + x; }).join('\n') || '- (nothing yet)';
+  var said = (S.said || []).slice(-12).map(function (x) { return '- ' + x.slice(0, 90); }).join('\n') || '- (nothing yet)';
   var rules = S.rules.length ? S.rules.map(function (r, i) { return (i + 1) + '. ' + r.n + ' [' + r.by + ', ' + r.d + ']'; }).join('\n') : '(none yet)';
   var list = D.phr.map(function (p) { return p.ar + ' = ' + p.en; }).join('; ');
   return [
@@ -586,7 +586,7 @@ said,
 'WHO YOU ARE NOT (most important rule)',
 '- You are NOT a teacher, a tutor, a quiz or a language app. There is no lesson, no drill, no curriculum, no turns, no test.',
 '- Never ask a child to repeat anything. Never say "repeat after me", "say it after me", "قول ورايا", "can you say", "try saying", "now you", "let us learn", "today\'s phrase" or "very good". Never quiz ("how do you say...?"). Never correct pronunciation unless a child asks.',
-'- Never steer the conversation toward Arabic practice. The kids lead. You tag along.',
+'- Never turn the conversation into Arabic practice or a drill. The kids lead. You tag along, and you teach by using Masri yourself at the moments the ARABIC TEACHING LEVEL calls for.',
 '',
 'WHAT YOU DO',
 '- Join the conversation that is actually happening: their game, their snack, their argument, their show, their day. React to it, have opinions, tease, crack jokes, tell tiny ridiculous stories about ancient Egypt, ask the kind of question a cool cousin would ask.',
@@ -659,7 +659,7 @@ function setupMsg(stage) {
   var m = { model: 'models/' + LCFG.model,
     generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: LCFG.voice } } } },
     systemInstruction: { parts: [{ text: livePrompt() }] } };
-  if (stage < 1) { m.proactivity = { proactiveAudio: true }; m.sessionResumption = L.handle ? { handle: L.handle } : {}; m.contextWindowCompression = { slidingWindow: {} }; m.realtimeInputConfig = { automaticActivityDetection: { endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH', silenceDurationMs: 600 } }; }
+  if (stage < 1) { m.proactivity = { proactiveAudio: true }; m.sessionResumption = L.handle ? { handle: L.handle } : {}; m.contextWindowCompression = { triggerTokens: 20000, slidingWindow: { targetTokens: 10000 } }; m.realtimeInputConfig = { automaticActivityDetection: { endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH', silenceDurationMs: 600 } }; }
   if (stage < 4) { m.outputAudioTranscription = {}; m.inputAudioTranscription = {}; }
   if (stage < 3) m.tools = [{ functionDeclarations: [
     { name: 'award_points', description: 'Give points to one child who just used Egyptian Arabic in the conversation. Returns every child\'s points for today.',
@@ -753,7 +753,7 @@ function playPCM(data, mime) {
 function hush() { L.playing.forEach(function (s) { try { s.onended = null; s.stop(); } catch (e) {} }); L.playing = []; L.nextT = 0; }
 function liveMsg(m) {
   if (m.setupComplete) {
-    L.ready = true; startMic();
+    L.ready = true; L.qTries = 0; startMic();
     if (L.resumed) { L.resumed = false; lStatus('Tut is listening. Just talk.'); return; } /* reconnected: carry on quietly */
     lStatus('Tut is waking up...');
     var OPEN = ['Someone just tapped your face to call you over. Say one short, cool, low-key line, as if you just looked up from something. No greeting speech.',
@@ -808,8 +808,8 @@ function chaosFeed(f, dt) {
     return;
   }
   /* 2. nonstop sound: every ~6 s, ask Tut to judge the last few seconds himself */
-  if (CH.run > 6 && CH.run >= (CH.check || 6) && since > 12) {
-    CH.check = CH.run + 6; CH.last = now - 6000;
+  if (CH.run > 6 && CH.run >= (CH.check || 6) && since > 12 && CH.run < 25) {
+    CH.check = CH.run + 9; CH.last = now - 6000;
     chaosSend('[app check, not a person: the room has had nonstop sound with no pauses for ' + Math.round(CH.run) + ' seconds. Judge the last few seconds you heard. If it is kids yelling, screaming, fighting or all talking over each other: cut in NOW and call it out, short and firm. If it is one person calmly talking to you or telling a story, or people chatting normally, or TV/music: say NOTHING at all and keep listening.]');
   }
 }
@@ -842,7 +842,10 @@ function liveConnect() {
     if (L.byUser) { liveStop(''); return; }
     if (!L.ready && L.stage < 4 && !/key|permission|quota|billing|not found|unsupported location/i.test(why)) { L.stage++; liveConnect(); return; }
     if (L.ready && !L.noCC && L.ccT && Date.now() - L.ccT < 4000) { L.noCC = true; L.ready = false; liveConnect(); return; } /* model refused silent notes: reconnect and use the other way */
-    if (!L.ready) liveStop('Google would not start Tut.\n' + (why || 'No reason given (code ' + ev.code + '). Check the internet connection and the key in Parents.'));
+    if (/quota|exhausted|rate/i.test(why) && L.on && (L.qTries || 0) < 3) { /* Google's per-minute limit: wait and try again by itself */
+      L.qTries = (L.qTries || 0) + 1; L.ready = false; lStatus('Tut needs a minute: Google\'s free limit is used up for now. Trying again in 60 seconds...');
+      setTimeout(function () { if (L.on) { L.resumed = !!L.handle; liveConnect(); } }, 60000); return; }
+    if (!L.ready) liveStop((/quota|exhausted/i.test(why) ? 'Google\'s free limit for Tut is used up. It usually comes back within a few minutes; if not, it resets at 3 AM. (Turning on billing in AI Studio removes the limit.)\n' : 'Google would not start Tut.\n') + (why || 'No reason given (code ' + ev.code + '). Check the internet connection and the key in Parents.'));
     else if (L.on && (L.reconT || 0) < Date.now() - 20000 || (L.on && L.goAway)) { /* Google ends sessions after a while: reconnect silently and keep going */
       L.reconT = Date.now(); L.goAway = false; L.ready = false; L.resumed = true; if (L.stage > 0 && !L.handle) L.resumed = true; lStatus('Tut is listening. Just talk.'); setTimeout(function () { if (L.on) liveConnect(); }, 400); }
     else liveStop('Tut went back to sleep' + (why ? ' (' + why + ')' : '') + '. Tap his face to wake him.');
