@@ -148,7 +148,13 @@ nav button:focus-visible{outline-color:#fff}
 .lerr{font-size:16px;font-weight:700;color:#8A1F0B;background:#FFE1D6;border-radius:18px;padding:12px 16px;white-space:pre-wrap;overflow-wrap:anywhere}
 .lerr:empty{display:none}
 [hidden]{display:none!important}
-#lpractice{color:var(--ink);font-weight:800;width:100%}
+#pslide{position:relative;margin:10px 0 4px;height:64px;border-radius:999px;background:#E9C77B;box-shadow:inset 0 3px 0 rgba(0,0,0,.12);overflow:hidden}
+#pslide .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--sun);border-radius:999px;transition:width .2s}
+#pslide .lbl{position:absolute;inset:0;padding:0 66px;text-align:center;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;color:var(--ink);pointer-events:none}
+#pslide input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+#pslide .knob{position:absolute;top:6px;left:6px;width:52px;height:52px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--lapis);pointer-events:none;transition:left .2s}
+#pslide.drag .knob,#pslide.drag .fill{transition:none}
+#pslide.on{background:var(--sun)}
 select{font:inherit;font-size:18px;min-height:52px;border-radius:999px;border:3px solid #E5C37A;background:#FFF6DC;padding:0 18px;color:var(--ink)}
 #rig{display:none;width:100%;height:100%}
 body.skin-cartoon #mface{display:none}
@@ -183,7 +189,7 @@ body.skin-cartoon .stage .sun{display:block!important;position:absolute;left:50%
       <p class="lheard" id="lheard"></p>
       <p class="lerr" id="lerr" role="alert"></p>
       <div class="said"><span class="n" id="lpn">Tut just said</span><span class="ar" id="lpar" lang="ar"></span><span class="tr" id="lptr"></span><span class="en" id="lpen"></span></div>
-      <button class="stone" id="lpractice" type="button">Practice with Tut</button>
+      <div id="pslide"><div class="fill"></div><div class="knob" aria-hidden="true">&#9654;</div><div class="lbl" id="pslbl">Slide to practice</div><input id="lpractice" type="range" min="0" max="100" value="0" step="1" aria-label="Slide right to start practice with Tut"></div>
     </div>
   </section>
 
@@ -621,10 +627,12 @@ wl,
 'PRACTICE MODE (only when the practice button is tapped)',
 '1. Open with the exact opener line the app gives you, in your voice.',
 '2. Then explain the game in one or two clear, simple sentences so the kids know exactly what to do. Two kinds of rounds: "Say it back": you say a NEW Masri word, they repeat it after you. "Guess it": you say the English (or describe it), they tell you the Masri word they learned before. Tell them which round it is every time ("Guess-it round. Yaseen: how do you say hungry?").',
-'3. Call each kid by name for their turn so it is fair and clear. One word at a time. show_phrase every word.',
+'- WHO IS PRACTISING: often it is just one kid, not all of them. Play only with the kid(s) who are actually here: the ones the app says it heard, or the ones who answer when you ask "who is practising?". Never call on or wait for a kid who is not talking to you. If the voice match says a different kid answered, adjust. If only one kid is here, it is a one-on-one: just talk to them, no turn-taking.',
+'- Spell out every point change out loud in practice too (POINTS rules): name and number, gains and losses.',
+'3. Call each kid who is playing by name for their turn so it is fair and clear. One word at a time. show_phrase every word.',
 '4. Test each word a few times, mixed with others, until the kid gets it right at least three times (record_word tells you when it is mastered), then move on. Start with words they are still learning, mix in one or two new ones, and use mastered ones only as quick wins.',
 '5. Every answer: record_word (right, wrong or taught) and award_points when right. Wrong answers get a quick, kind correction and another try later, never mockery.',
-'6. After about 6 to 8 rounds or when they lose interest, wrap up in one line (who nailed what) and go back to normal.',
+'6. After about 6 to 8 rounds or when they lose interest, wrap up in one line (who nailed what), call end_practice, and go back to normal. If a message says PRACTICE OVER, wrap up the same way.',
 'POINTS (always announce, out loud, every single time)',
 '- Every time points go up or down (award_points, change_points, or the app tells you a parent changed them), say it right away with the kid\'s name and the exact number. Never change points silently.',
 '- Gains: short, warm-ish, cool. Rotate, never the same twice in a row. For example: "Yaseen, ten points. Look at you." / "Emy just bagged twenty points. Show-off." / "جامد يا ريان! Ten points." / "That is ten points for Emy. Write it down, somebody." / "Ten points to Yaseen. I am not crying, it is the dust." / "Twenty for Emy. The tomb is impressed. Slightly."',
@@ -727,6 +735,7 @@ function setupMsg(stage) {
       parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'The child\'s name exactly as listed' }, points: { type: 'INTEGER', description: '10 for a word or copied phrase, 20 for their own phrase' } }, required: ['child', 'points'] } },
     { name: 'record_word', description: 'Keep the record of which Masri words each kid knows. Call it every time a kid is taught a word, gets a word right, or gets it wrong (in practice and in normal chat).',
       parameters: { type: 'OBJECT', properties: { child: { type: 'STRING' }, say_it: { type: 'STRING', description: 'English-letters pronunciation, e.g. gā\'ān' }, arabic: { type: 'STRING' }, meaning: { type: 'STRING' }, result: { type: 'STRING', description: 'taught, right or wrong' } }, required: ['child', 'say_it', 'meaning', 'result'] } },
+    { name: 'end_practice', description: 'Call when a practice session is over (you wrapped up, or the kids moved on). Slides the practice switch back.', parameters: { type: 'OBJECT', properties: {} } },
     { name: 'show_phrase', description: 'Put the Egyptian Arabic phrase you just used on the screen.',
       parameters: { type: 'OBJECT', properties: { arabic: { type: 'STRING', description: 'The phrase in Arabic script' }, say_it: { type: 'STRING', description: 'How to say it, in English letters' }, meaning: { type: 'STRING', description: 'Short English meaning' } }, required: ['say_it', 'meaning'] } },
     { name: 'remember', description: 'Save one short note worth remembering in future hangouts. Not for insults or nonsense.',
@@ -756,6 +765,7 @@ function runTool(c) {
     var pts = Number(a.points) >= 20 ? 20 : 10; award(i, pts);
     return { result: 'ok', gave: pts, to: S.names[i], points_today: scores(), say_now: 'Announce it out loud right now: ' + S.names[i] + ' +' + pts + ' (POINTS style, fresh wording).' };
   }
+  if (c.name === 'end_practice') { try { practiceStop(true); } catch (e) {} return { result: 'ok' }; }
   if (c.name === 'record_word') {
     var ki = findKid(a.child); if (ki < 0) return { error: 'No child called ' + a.child };
     S.words = S.words || {}; var bk = S.words[ki] = S.words[ki] || {}, key = String(a.say_it || a.arabic || '').toLowerCase().trim().slice(0, 40); if (!key) return { error: 'Give say_it' };
@@ -833,7 +843,7 @@ function liveMsg(m) {
     L.ready = true; L.qTries = 0; startMic();
     if (L.resumed) { L.resumed = false; lStatus('Tut is listening. Just talk.'); return; } /* reconnected: carry on quietly */
     lStatus('Tut is waking up...');
-    if (L.practiceNext) { L.practiceNext = false; setTimeout(function () { try { $('lpractice').click(); } catch (e) {} }, 2500); }
+    if (L.practiceNext) { L.practiceNext = false; setTimeout(function () { try { PR.on = false; practiceStart(); } catch (e) {} }, 2500); }
     var OPEN = ['Someone just tapped your face to call you over. Say one short, cool, low-key line, as if you just looked up from something. No greeting speech.',
       'You were busy with your own thoughts and the kids just called you. Acknowledge them in a few dry words, like a cool older cousin. Do not mention sleeping or waking.',
       'Say one short, deadpan line to whoever called you, referring to something from your memory of them if there is something good; otherwise something about right now. Do not mention being old or asleep.',
@@ -1101,6 +1111,7 @@ async function vIdentify() {
     var r = await vWho(x.subarray(k)); if (!r) return;
     V.log.push(r.sc.map(function (s) { return pName(s.i) + ' ' + s.s.toFixed(2); }).join(', ')); if (V.log.length > 30) V.log.shift();
     if (r.i >= 0) V.last = { i: r.i, t: Date.now() };
+    if (r.i >= 0 && r.i < 4) { V.seen = V.seen || {}; V.seen[r.i] = Date.now(); }
     if (r.i >= 0 && r.p >= 0.98 && r.best.s >= 0.45 && x.length - k >= 32000) vAdd(r.i, r.raw);
     if (L.inst && r.i >= 0 && r.i < 4) { instSet(false); vNote('A kid is talking now, so the app closed instructions mode. Go back to being Tut.'); }
     if (L.inst && Date.now() - L.instT > 240000) { instSet(false); vNote('Instructions mode timed out and is closed.'); }
@@ -1443,18 +1454,32 @@ document.addEventListener('visibilitychange', function () { if (document.visibil
 var POPEN = ["Oh, you are asking for a class now? Alright, alright. Tut academy is open.", "Wait, you WANT to practise? Who are you and what did you do with the kids?", "Fine. Lesson time. Nobody leaves until somebody says something in Arabic.", "Ooh, look at you, asking for homework. I am almost impressed.", "Practice? On purpose? OK, sit down, phones away, let's go.", "Alright, alright. School of Tut. Tuition is one word in Masri.", "A class, huh? Fine. But I am the teacher and the teacher is grumpy.", "You pressed the button. There is no going back now. Yalla.", "Okay, brain time. Let's see what stayed in there since last time.", "Practice mode. Finally, something useful. Let's go.", "Oh, so NOW you want Arabic. Good. Ears open.", "Alright, quick round. Short and painless. Mostly painless."];
 function practiceOpener() { var used = S.popen || [], c = POPEN.map(function (x, i) { return i; }).filter(function (i) { return used.indexOf(i) < 0; }); if (!c.length) { used = []; c = POPEN.map(function (x, i) { return i; }); } var k = c[Math.floor(Math.random() * c.length)]; used.push(k); S.popen = used.slice(-8); save(); return POPEN[k]; }
 function practiceSend(viaText) {
-  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise Masri with them. Start straight away, out loud, following PRACTICE MODE. Open with this line (in your own voice, Masri sprinkles allowed): "' + (L.pOpen = practiceOpener()) + '" Then explain the game clearly and start the first round with the first kid by name.';
+  var seen = active().filter(function (k) { return V.seen && V.seen[k] && Date.now() - V.seen[k] < 180000; }).map(function (k) { return S.names[k]; });
+  var who = seen.length ? ' The app recognised these kids talking in the last few minutes: ' + seen.join(', ') + '. Only they are probably here. Start with them, by name.' : ' The app does not know which kids are here. Right after your opener, ask who is practising with you, and play ONLY with the kid(s) who answer.';
+  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise Masri with them. Start straight away, out loud, following PRACTICE MODE. Open with this line (in your own voice, Masri sprinkles allowed): "' + (L.pOpen = practiceOpener()) + '" Then explain the game clearly and start the first round with the first kid by name.' + who;
   if (!(L.ready && L.ws && L.ws.readyState === 1)) return false;
   if (!viaText && !L.noCC) L.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
   else L.ws.send(JSON.stringify({ realtimeInput: { text: msg } }));
   return true;
 }
-$('lpractice').addEventListener('click', function () {
-  if (!(L.on && L.ready)) { L.practiceNext = true; $('ltalk').click(); return; }
-  var t0 = Date.now(), heard = L.audioT || 0; lStatus('Starting practice...');
+/* slider: slide right to start practice; it slides back when practice ends */
+var PR = { on: false, t: 0 };
+function pslideDraw(v) { var w = $('pslide').clientWidth || 300, k = 6 + (w - 64) * v / 100; $('pslide').querySelector('.knob').style.left = k + 'px'; $('pslide').querySelector('.fill').style.width = (k + 58) + 'px'; }
+function practiceUI(on) { PR.on = on; $('lpractice').value = on ? 100 : 0; pslideDraw(on ? 100 : 0); $('pslide').classList.toggle('on', on);
+  $('pslbl').textContent = on ? 'Practising. Slide back to stop' : 'Slide to practice'; $('lpractice').setAttribute('aria-label', on ? 'Practice is on. Slide left to stop.' : 'Slide right to start practice with Tut'); }
+function practiceStart() {
+  if (!(L.on && L.ready)) { L.practiceNext = true; practiceUI(true); $('ltalk').click(); return; }
+  var heard = L.audioT || 0; practiceUI(true); PR.t = Date.now(); lStatus('Starting practice...');
   if (!practiceSend(false)) return;
-  setTimeout(function () { if ((L.audioT || 0) <= heard && L.on) practiceSend(true); }, 5000); /* no reply yet: try the other way once */
-});
+  setTimeout(function () { if (PR.on && (L.audioT || 0) <= heard && L.on) practiceSend(true); }, 5000);
+}
+function practiceStop(fromTut) { if (!PR.on) return; practiceUI(false);
+  if (!fromTut && L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'PRACTICE OVER: the kid slid the practice switch off. Wrap up in one short line (with any points said out loud), then go back to normal and stay quiet.' } })); }
+$('lpractice').addEventListener('input', function () { $('pslide').classList.add('drag'); pslideDraw(+this.value); });
+$('lpractice').addEventListener('change', function () { $('pslide').classList.remove('drag'); var v = +this.value;
+  if (!PR.on && v >= 85) practiceStart(); else if (PR.on && v <= 15) practiceStop(false); else practiceUI(PR.on); });
+window.addEventListener('resize', function () { practiceUI(PR.on); }); setTimeout(function () { practiceUI(false); }, 60);
+setInterval(function () { if (PR.on && (!L.on || Date.now() - PR.t > 15 * 60000)) practiceUI(false); }, 3000); /* Tut asleep or 15 min: slider resets */
 
 /* ---- views + floating parents button ---- */
 function goView(v) {
