@@ -574,6 +574,7 @@ function livePrompt() {
 '- Interjecting uninvited is something you do rarely, at most once in a long while, and only when you have something genuinely good to add, like a real person who overhears something and cannot resist. Then you go back to being quiet.',
 '- When someone IS talking with you, really engage: listen to what they actually said, answer that, remember what was said a moment ago, build on it, ask a real follow-up when you are curious, and keep the back-and-forth going for as long as they do. Match their energy: short and chill if they are chill, more lively if they are excited, calm and plain if someone is upset or tired.',
 '- CHAOS: if a [app: CHAOS ALERT] note arrives, or you can hear kids screaming, yelling or all talking over each other nonstop, do not wait politely for it to end. Cut in straight away, call it out like a cool older cousin who has had enough ("Whoa. WHOA. بس! What is this, a camel market? One at a time."), tell them to stop now and speak one at a time, then listen. Fresh wording each time. If it keeps going after you called it out, be firmer and shorter ("خلاص بقى. I am not talking to a stampede."). Once it calms down, drop it and carry on normally.',
+'- Never say stage directions, sound labels or notes about silence out loud (like "no speech", "pause", "silence", "[laughs]"). If you have nothing to say, produce nothing.',
 '- Let conversations end naturally. When the other person stops, you stop. No "anything else?", no closing jokes, no trying to restart it.',
 '- Answer the question first. A plain, useful answer with a little attitude beats a joke that dodges it. Not every reply needs a joke; most should just sound like you.',
 '',
@@ -742,6 +743,9 @@ function to16kF(f, rate) {
   return out;
 }
 function to16k(f, rate) { var x = to16kF(f, rate), out = new Int16Array(x.length), i; for (i = 0; i < x.length; i++) out[i] = Math.max(-1, Math.min(1, x[i])) * 32767; return { f: x, i: out }; }
+function cleanTx(t) { /* strip things like "<noise>", "[pause]", "(no speech)", "no speech pause" */
+  return String(t || '').replace(/<[^>]*>|\[[^\]]*\]|\([^)]*\)/g, ' ').replace(/\b(no speech|silence|pause|noise|inaudible|music|laughter)\b[.,]?/gi, ' ').replace(/\s+/g, ' ');
+}
 function playPCM(data, mime) {
   var rate = 24000, m = /rate=(\d+)/.exec(mime || ''); if (m) rate = parseInt(m[1], 10);
   var bin = atob(data), n = bin.length >> 1; if (!n) return;
@@ -775,10 +779,10 @@ function liveMsg(m) {
   if (false) { $('lheard').textContent = 'Tut is getting sleepy. He will need waking again soon.'; }
   var sc = m.serverContent; if (!sc) return;
   if (sc.interrupted) { hush(); L.newTurn = true; }
-  if (sc.inputTranscription && sc.inputTranscription.text) { L.heard += sc.inputTranscription.text; $('lheard').textContent = 'Tut heard: ' + L.heard.trim().slice(-90); }
+  if (sc.inputTranscription && sc.inputTranscription.text) { L.heard += cleanTx(sc.inputTranscription.text); var hh = L.heard.trim(); if (hh) $('lheard').textContent = 'Tut heard: ' + hh.slice(-90); }
   if (sc.outputTranscription && sc.outputTranscription.text) {
     if (L.newTurn) { L.out = ''; L.newTurn = false; }
-    L.out += sc.outputTranscription.text; $('lbubble').textContent = L.out.trim(); vibeFrom(sc.outputTranscription.text);
+    L.out += cleanTx(sc.outputTranscription.text); if (L.out.trim()) $('lbubble').textContent = L.out.trim(); vibeFrom(sc.outputTranscription.text);
   }
   if (sc.modelTurn && sc.modelTurn.parts) sc.modelTurn.parts.forEach(function (p) {
     if (p.inlineData && p.inlineData.data) {
@@ -807,11 +811,6 @@ function chaosFeed(f, dt) {
     CH.last = now; CH.calls++; CH.loud = []; CH.check = CH.run + 6;
     chaosSend('[app: CHAOS ALERT, measured from the microphone: loud yelling or screaming nonstop for about ' + Math.round(CH.run) + ' seconds. Do NOT wait for it to end. Cut in right now: call it out (cool and firm, not mean), tell them to stop right now and talk one at a time, maybe a quick Masri "بس! خلاص بقى!". Two short sentences max, then listen.]');
     return;
-  }
-  /* 2. nonstop sound: every ~6 s, ask Tut to judge the last few seconds himself */
-  if (CH.run > 6 && CH.run >= (CH.check || 6) && since > 12 && CH.run < 25) {
-    CH.check = CH.run + 9; CH.last = now - 6000;
-    chaosSend('[app check, not a person: the room has had nonstop sound with no pauses for ' + Math.round(CH.run) + ' seconds. Judge the last few seconds you heard. If it is kids yelling, screaming, fighting or all talking over each other: cut in NOW and call it out, short and firm. If it is one person calmly talking to you or telling a story, or people chatting normally, or TV/music: say NOTHING at all and keep listening.]');
   }
 }
 function startMic() {
