@@ -1,11 +1,56 @@
 [
- {"id":"v1","name":"Arabic Hour","date":"Nov 11, 2026","theme":"Sunny desert, flat cartoon Tut",
-  "functions":["Tap-to-play: 20 Egyptian phrases and Tut lines in your own recorded gruff voice","Points per kid (3 kids), turn-taking, Tut tut-tuts and praise","Favors: family goal and rewards","Parents settings for names and points"],
-  "note":"No live conversation."},
- {"id":"v2","name":"Live Tut","date":"Nov 12, 2026","theme":"Sunny desert, big animated cartoon face",
-  "functions":["Live talking Tut (Google Gemini Live, Algenib voice): grumpy, roasting, teaches Egyptian in context","Face moves with his voice: mouth, eyes, brows and moods","Tut gives points himself; up to 4 kids","Memory of past hangouts; voice recognition for kids and parents","Parent instructions mode (say \"Seriously\") including changing scores","Setup link to copy everything to a phone; Practice tab kept"],
-  "note":"Needs a Google Gemini key in Parents."},
- {"id":"v3","name":"Tomb Tut","date":"Nov 13, 2026","theme":"Dark torch-lit tomb, realistic dusty little mummy",
-  "functions":["Everything in Live Tut","New face: a realistic generated mummy picture brought to life","Ember eyes that glow, glance, roll and blink; mouth opens with his voice","Flickering torchlight and floating dust","This versions catalog (Parents > App versions)"],
-  "note":"Needs a Google Gemini key in Parents."}
+ {
+  "id": "v1",
+  "name": "Arabic Hour",
+  "date": "Nov 11, 2026",
+  "theme": "Sunny desert, flat cartoon Tut",
+  "functions": [
+   "Tap-to-play: 20 Egyptian phrases and Tut lines in your own recorded gruff voice",
+   "Points per kid (3 kids), turn-taking, Tut tut-tuts and praise",
+   "Favors: family goal and rewards",
+   "Parents settings for names and points"
+  ],
+  "note": "No live conversation."
+ },
+ {
+  "id": "v2",
+  "name": "Live Tut",
+  "date": "Nov 12, 2026",
+  "theme": "Sunny desert, big animated cartoon face",
+  "functions": [
+   "Live talking Tut (Google Gemini Live, Algenib voice): grumpy, roasting, teaches Egyptian in context",
+   "Face moves with his voice: mouth, eyes, brows and moods",
+   "Tut gives points himself; up to 4 kids",
+   "Memory of past hangouts; voice recognition for kids and parents",
+   "Parent instructions mode (say \"Seriously\") including changing scores",
+   "Setup link to copy everything to a phone; Practice tab kept"
+  ],
+  "note": "Needs a Google Gemini key in Parents."
+ },
+ {
+  "id": "v3",
+  "name": "Tomb Tut",
+  "date": "Nov 13, 2026",
+  "theme": "Dark torch-lit tomb, realistic dusty little mummy",
+  "functions": [
+   "Everything in Live Tut",
+   "New face: a realistic generated mummy picture brought to life",
+   "Ember eyes that glow, glance, roll and blink; mouth opens with his voice",
+   "Flickering torchlight and floating dust",
+   "This versions catalog (Parents > App versions)"
+  ],
+  "note": "Needs a Google Gemini key in Parents."
+ },
+ {
+  "id": "v4",
+  "name": "Talking Tut",
+  "date": "Nov 13, 2026",
+  "theme": "Dark torch-lit tomb, realistic dusty little mummy",
+  "functions": [
+   "Everything in Tomb Tut",
+   "Lip sync: the mouth reads each sound of his voice and forms speaking shapes: closed, wide \"ah\", stretched \"ee\", rounded \"oo\", narrow \"s\"/\"f\"",
+   "Lips snap shut on m, b and p sounds"
+  ],
+  "note": "Needs a Google Gemini key in Parents."
+ }
 ]
