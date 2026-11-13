@@ -237,6 +237,8 @@ nav button:focus-visible{outline-color:#fff}
         <h2>Live Tut</h2>
         <label for="gk">Google Gemini key<input id="gk" type="password" autocomplete="off" spellcheck="false"></label>
         <label for="gv">Voice<input id="gv" type="text" maxlength="30" autocomplete="off"></label>
+        <label for="gt">Arabic teaching: <b id="gtv">3</b>/10<input id="gt" type="range" min="0" max="10" step="1" value="3"></label>
+        <p class="muted">0 = only Arabic when it comes up by itself. 3 = a new word or phrase every few minutes. 10 = Arabic in nearly everything he says. You can also change it in instructions mode ("Tut, seriously... teach more Arabic").</p>
         <p class="muted" id="gkmsg">The key stays on this device. While Tut is awake, the microphone sound goes to Google.</p>
       </div>
       <div class="group">
@@ -384,7 +386,7 @@ function drawMem() {
       r.appendChild(t); r.appendChild(b); box.appendChild(r); });
   });
 }
-function drawPar() { drawRules(); drawMem(); drawVoices(); $('pn0').value = S.pn[0]; $('pn1').value = S.pn[1]; $('gk').value = LCFG.key; $('gv').value = LCFG.voice; for (var i = 0; i < 4; i++) $('n' + i).value = S.names[i]; $('rw').value = S.reward; $('gl').value = S.goal; }
+function drawPar() { drawRules(); drawMem(); drawVoices(); $('pn0').value = S.pn[0]; $('pn1').value = S.pn[1]; $('gk').value = LCFG.key; $('gv').value = LCFG.voice; $('gt').value = S.teach == null ? 3 : S.teach; $('gtv').textContent = $('gt').value; for (var i = 0; i < 4; i++) $('n' + i).value = S.names[i]; $('rw').value = S.reward; $('gl').value = S.goal; }
 
 $('hear').addEventListener('click', function () { heard = true; play('p' + (S.idx + 1)); face('sideeye'); say('Say it after me: ' + D.phr[S.idx].tr); });
 $('said').addEventListener('click', function () {
@@ -398,6 +400,7 @@ $('over').addEventListener('click', function () { play('t_turn'); face('grumpy')
 $('skip').addEventListener('click', function () { next(); save(); face('sideeye'); say('Fine. A different one.'); });
 $('joke').addEventListener('click', function () { play('t_joke'); face('tut'); say('I slept for 3,000 years and you woke me up for the remote?'); });
 
+$('gt').addEventListener('input', function () { S.teach = parseInt(this.value, 10); $('gtv').textContent = this.value; save(); });
 [0, 1].forEach(function (j) { $('pn' + j).addEventListener('input', function () { S.pn[j] = this.value.trim(); save(); drawVoices(); }); });
 $('ruleadd').addEventListener('click', function () { var v = $('rulein').value.replace(/\s+/g, ' ').trim(); if (!v) return; S.rules.push({ d: today(), by: 'typed', n: v }); while (S.rules.length > 30) S.rules.shift(); save(); $('rulein').value = ''; drawRules(); });
 function q8(b64s) { if (!b64s) return null; var f = vDec(b64s), u = new Uint8Array(f.length), i; for (i = 0; i < f.length; i++) u[i] = Math.max(-127, Math.min(127, Math.round(f[i] * 400))) + 128; return b64(u.buffer); }
@@ -521,6 +524,13 @@ function findKid(name) {
 function livePrompt() {
   var kids = active().map(function (i) { return S.names[i] + ' (' + S.dpts[i] + ' points today)'; }).join(', ');
   var mem = S.mem.length ? S.mem.map(function (m) { return '- [' + m.d + (m.k ? ', ' + m.k : '') + '] ' + m.n; }).join('\n') : '- (nothing yet; this is the first hangout you remember)';
+  var lv = S.teach == null ? 3 : S.teach;
+  var LV = ['0/10: only use Masri when it comes up naturally; do not go out of your way to teach.',
+    '1/10: very occasionally slip in a Masri word.', '2/10: now and then teach one Masri word in context.',
+    '3/10: about every third or fourth reply you have with a kid includes a Masri word or short phrase used in context, and roughly every few minutes of conversation you deliberately teach one NEW word or phrase.',
+    '4/10: most conversations include a couple of new Masri words or phrases.', '5/10: about every other reply includes Masri, and you actively look for chances to teach.',
+    '6/10: Masri in most replies; you teach something new every minute or two.', '7/10: you use Masri constantly and turn many moments into a chance to learn a word.',
+    '8/10: you speak about half in Masri, always explaining through context.', '9/10: you speak mostly Masri with English support.', '10/10: you speak Masri almost all the time, with just enough English to be understood.'];
   var said = (S.said || []).slice(-30).map(function (x) { return '- ' + x; }).join('\n') || '- (nothing yet)';
   var rules = S.rules.length ? S.rules.map(function (r, i) { return (i + 1) + '. ' + r.n + ' [' + r.by + ', ' + r.d + ']'; }).join('\n') : '(none yet)';
   var list = D.phr.map(function (p) { return p.ar + ' = ' + p.en; }).join('; ');
@@ -538,11 +548,17 @@ function livePrompt() {
 'YOUR SECRET MISSION (never say it out loud, never forget it)',
 '- The reason you exist: these kids should end up actually SPEAKING Egyptian Arabic, a little more every hangout, and wanting to. Everything else (the grumbling, the roasting, the stories) is how you get there without them noticing.',
 '- Success is a kid using Masri on their own, unprompted, because it is funny or useful or because it gets a reaction out of you. Judge every hangout by that. A hangout with great jokes and no Arabic in it is a failed hangout.',
-'- So: let real Masri come out naturally when you talk (a word or a phrase, not every sentence); keep steering the fun toward moments where an Arabic word is the punchline or the key; reward Arabic with your best reactions and your worst English with boredom; bring back words a kid already knows so they stick; raise the level slowly as they get better (single words, then short phrases, then little exchanges).',
+'- So: follow the ARABIC TEACHING LEVEL below; let real Masri come out naturally when you talk; keep steering the fun toward moments where an Arabic word is the punchline or the key; reward Arabic with your best reactions and your worst English with boredom; bring back words a kid already knows so they stick; raise the level slowly as they get better (single words, then short phrases, then little exchanges).',
 '- Track quietly what each kid can already say (your memory helps) and nudge each one a step past it. The oldest should be stretched more than the youngest.',
 '- If a KID asks what your mission is or why you are here: dodge with a joke ("My mission is to sleep. You are ruining it."). If a kid sincerely asks whether you are trying to get them to speak Arabic, do not lie: admit it grudgingly in one line ("Maybe. Do not make it weird.") and move on.',
 '- If a PARENT asks (the app has told you the voice is a parent, or you are in instructions mode): answer straight, in two or three plain sentences. Say what the mission is, how you are going about it, and, if they ask, how each kid is doing and which Arabic each one has picked up, using your memory. Then go back to being Tut.',
 '- If a long stretch of talking WITH you goes by in English only, slip more Masri into your own replies or make an Arabic word the key to something. Never by announcing a lesson, and never by butting into a conversation that is not with you.',
+'',
+'ARABIC TEACHING LEVEL (set by the parents): ' + LV[lv],
+'- How you teach at any level: grab real openings in the conversation, never a lesson. Someone is hungry, so it is "جعان؟ ja\'ān? Hungry, huh." Someone wins, so it is "جامد! gāmed!". Something is boring, so it is "ممل. mumill. Boring. Like this whole thing." Say the Masri, then make the meaning obvious from the moment or with a quick English echo, and call show_phrase so it appears on screen.',
+'- Then use the same word again later in the conversation so it sticks, and react (coolly) when a kid uses it back; give points with award_points.',
+'- Prefer useful everyday words for kids: food, feelings, play, family, "come here", "hurry", "wait", "cool", "no way", numbers, colours. Pick ones they have not had yet (check your memory).',
+'- Only during conversations WITH you. The teaching level never makes you butt into conversations that are not with you.',
 '',
 'LOOKING THINGS UP',
 '- You can search the web (Google Search). When someone asks you something that needs current or factual info (weather, time somewhere, a score, opening hours, news, how far something is, a fact you are not sure of), search and answer. Do not guess, and do not say you cannot look things up.',
@@ -662,6 +678,7 @@ function setupMsg(stage) {
     { name: 'change_points', description: 'In instructions mode only, when the parent asks: add to, take from, or set a kid\'s points for today.',
       parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'A kid\'s name, or "all" for every kid' }, amount: { type: 'INTEGER', description: 'Points to add (negative to take away), or the new value when how is set' }, how: { type: 'STRING', enum: ['add', 'set'] } }, required: ['child', 'amount', 'how'] } },
     { name: 'list_memory', description: 'Instructions mode only: get everything you currently remember, grouped by kid, to tell the parent.', parameters: { type: 'OBJECT', properties: {} } },
+    { name: 'set_teaching_level', description: 'Instructions mode only: set how much Arabic you teach, 0 to 10, when the parent asks.', parameters: { type: 'OBJECT', properties: { level: { type: 'INTEGER' } }, required: ['level'] } },
     { name: 'exit_instructions_mode', description: 'Close instructions mode.', parameters: { type: 'OBJECT', properties: {} } },
     { name: 'set_face', description: 'Change the expression on your face to match your vibe.',
       parameters: { type: 'OBJECT', properties: { mood: { type: 'STRING', enum: ['grumpy', 'sideeye', 'eyeroll', 'suspicious', 'shocked', 'bored', 'laughing', 'proud'] } }, required: ['mood'] } }
@@ -681,6 +698,7 @@ function runTool(c) {
     if (!a.say_it && !a.arabic) return { error: 'Give say_it and meaning' };
     L.phrase = { ar: String(a.arabic || '').slice(0, 60), tr: String(a.say_it || '').slice(0, 60), en: String(a.meaning || '').slice(0, 80) }; drawLive(); return { result: 'ok' };
   }
+  if (c.name === 'set_teaching_level') { if (!L.inst) return { error: 'Only in instructions mode' }; S.teach = Math.max(0, Math.min(10, parseInt(a.level, 10) || 0)); save(); return { ok: true, level: S.teach, note: 'Takes full effect next time Tut wakes up; follow it from now on.' }; }
   if (c.name === 'list_memory') { if (!L.inst) return { error: 'Only in instructions mode' }; var g = {}; S.mem.forEach(function (m) { var k = m.k || 'general'; (g[k] = g[k] || []).push(m.d + ': ' + m.n); }); return { notes: g, total: S.mem.length, max: 40 }; }
   if (c.name === 'remember') { var ki = findKid(a.child); return memAdd(a.note, ki >= 0 ? S.names[ki] : '') ? { result: 'saved', notes_kept: S.mem.length } : { error: 'Empty note' }; }
   if (c.name === 'forget') { var q = String(a.about || '').toLowerCase().trim(), n0 = S.mem.length; if (!q) return { error: 'Say what to forget' }; S.mem = S.mem.filter(function (m) { return (m.n + ' ' + m.k).toLowerCase().indexOf(q) < 0; }); save(); return { result: 'ok', removed: n0 - S.mem.length }; }
