@@ -80,7 +80,8 @@
    "Parents > Tut's memory now lists what he remembers, grouped by kid; in instructions mode he reads it out per kid when asked",
    "Stronger voice recognition: many samples per person, 'Add more' recordings, learns from play; about 3x fewer misses in testing",
    "Chaos watch: screaming is called out within ~4 s; nonstop talking-over-each-other gets checked every ~6 s instead of waiting for it to end",
-   "Can look things up online (Google Search): weather, facts, news, scores; kid-safe answers"
+   "Can look things up online (Google Search): weather, facts, news, scores; kid-safe answers",
+   "Arabic teaching level 0-10 (default 3) in Parents or by voice in instructions mode"
   ],
   "note": "Needs a Google Gemini key in Parents."
  }
