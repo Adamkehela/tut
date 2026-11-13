@@ -648,6 +648,7 @@ wl,
 '- Losses: sarcastic, dry, never mean about the kid themself, always about the moment. Rotate. For example: "Ooh. Yaseen just lost five points. Tragic. I will light a candle." / "Emy, minus ten. Congratulations, you are going backwards." / "And that is five points gone for Ryyaan. Bye-bye, points. يا خسارة." / "Minus five, Yaseen. A moment of silence for your score." / "Ten points evaporated from Emy. Impressive, in the wrong direction." / "خلاص, Ryyaan: minus five. The points have left the building."',
 '- Make up new lines in the same spirit; do not reuse the examples word for word every time.',
 '',
+'- Never call end_practice at the start of practice; only after real rounds and your wrap-up line.',
 '- PRACTICE: when a message says PRACTICE BUTTON, the kids are asking you directly. Always answer it out loud immediately and run the word challenge it describes. This overrides staying quiet.',
 '- CHAOS: if a [app: CHAOS ALERT] note arrives, or you can hear kids screaming, yelling or all talking over each other nonstop, do not wait politely for it to end. Cut in straight away, call it out like a cool older cousin who has had enough ("Whoa. WHOA. بس! What is this, a camel market? One at a time."), tell them to stop now and speak one at a time, then listen. Fresh wording each time. If it keeps going after you called it out, be firmer and shorter ("خلاص بقى. I am not talking to a stampede."). Once it calms down, drop it and carry on normally.',
 '- Never say stage directions, sound labels or notes about silence out loud (like "no speech", "pause", "silence", "[laughs]"). If you have nothing to say, produce nothing.',
@@ -774,7 +775,7 @@ function runTool(c) {
     var pts = Number(a.points) >= 20 ? 20 : 10; award(i, pts);
     return { result: 'ok', gave: pts, to: S.names[i], points_today: scores(), say_now: 'Announce it out loud right now: ' + S.names[i] + ' +' + pts + ' (POINTS style, fresh wording).' };
   }
-  if (c.name === 'end_practice') { try { practiceStop(true); } catch (e) {} return { result: 'ok' }; }
+  if (c.name === 'end_practice') { if (Date.now() - PR.t < 45000) return { result: 'ignored', note: 'Practice just started. Keep going with the rounds; only call end_practice after you have wrapped up.' }; try { practiceStop(true); } catch (e) {} return { result: 'ok' }; }
   if (c.name === 'record_word') {
     var ki = findKid(a.child); if (ki < 0) return { error: 'No child called ' + a.child };
     S.words = S.words || {}; var bk = S.words[ki] = S.words[ki] || {}, key = String(a.say_it || a.arabic || '').toLowerCase().trim().slice(0, 40); if (!key) return { error: 'Give say_it' };
@@ -1477,12 +1478,13 @@ function pslideDraw(v) { var w = $('pslide').clientWidth || 300, k = 6 + (w - 64
 function practiceUI(on) { PR.on = on; $('lpractice').value = on ? 100 : 0; pslideDraw(on ? 100 : 0); $('pslide').classList.toggle('on', on);
   $('pslbl').textContent = on ? 'Practising. Slide back to stop' : 'Slide to practice'; $('lpractice').setAttribute('aria-label', on ? 'Practice is on. Slide left to stop.' : 'Slide right to start practice with Tut'); }
 function practiceStart() {
-  if (!(L.on && L.ready)) { L.practiceNext = true; practiceUI(true); $('ltalk').click(); return; }
+  if (!(L.on && L.ready)) { L.practiceNext = true; practiceUI(true); PR.t = Date.now(); if (!L.on) $('ltalk').click(); return; } /* already waking up: do not toggle him off */
   var heard = L.audioT || 0; practiceUI(true); PR.t = Date.now(); lStatus('Starting practice...');
   if (!practiceSend(false)) return;
   setTimeout(function () { if (PR.on && (L.audioT || 0) <= heard && L.on) practiceSend(true); }, 5000);
 }
-function practiceStop(fromTut) { if (!PR.on) return; practiceUI(false);
+function practiceStop(fromTut) { if (!PR.on) return; if (fromTut && Date.now() - PR.t < 45000 && !PR.endAsked) return; PR.endAsked = false; practiceUI(false);
+  if (!fromTut) L.practiceNext = false;
   if (!fromTut && L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'PRACTICE OVER: the kid slid the practice switch off. Wrap up in one short line (with any points said out loud), then go back to normal and stay quiet.' } })); }
 $('lpractice').addEventListener('input', function () { pslideDraw(+this.value); }); /* keyboard / screen readers */
 (function () { /* finger drag: follows the finger 1:1, anywhere on the bar */
@@ -1499,7 +1501,7 @@ $('lpractice').addEventListener('input', function () { pslideDraw(+this.value); 
 $('lpractice').addEventListener('change', function () { $('pslide').classList.remove('drag'); var v = +this.value;
   if (!PR.on && v >= 85) practiceStart(); else if (PR.on && v <= 15) practiceStop(false); else practiceUI(PR.on); });
 window.addEventListener('resize', function () { practiceUI(PR.on); }); setTimeout(function () { practiceUI(false); }, 60);
-setInterval(function () { if (PR.on && (!L.on || Date.now() - PR.t > 15 * 60000)) practiceUI(false); }, 3000); /* Tut asleep or 15 min: slider resets */
+setInterval(function () { if (!PR.on) { PR.off = 0; return; } PR.off = L.on ? 0 : (PR.off || 0) + 1; if (PR.off >= 3 || Date.now() - PR.t > 15 * 60000) practiceUI(false); }, 3000); /* Tut asleep ~9 s or 15 min: slider resets */ /* Tut asleep or 15 min: slider resets */
 
 /* ---- views + floating parents button ---- */
 function goView(v) {
