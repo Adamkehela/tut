@@ -271,7 +271,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.30</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.31</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -334,7 +334,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.30">v6.30</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.31">v6.31</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -1679,7 +1679,8 @@ function pcTick() {
 
 /* ---- Parents: session logs ---- */
 function logText() {
-  var out = ['Tut session logs, exported ' + new Date().toString(), ''];
+  var ver = ($('verlbl') || {}).textContent || '';
+  var out = ['Tut session logs | app ' + ver + ' | exported ' + new Date().toString(), ''];
   LOG.all.forEach(function (c, n) {
     out.push('=== Session ' + (n + 1) + ': ' + new Date(c.when).toLocaleString() + ' | ' + (c.mins || '?') + ' min | ' + c.ver + ' | kids: ' + (c.kids || []).join(', ') + ' | teach ' + c.teach + ' | problems: ' + (c.problems || 0) + ' | ended: ' + (c.end || 'still running'));
     c.ev.forEach(function (e) { var s = Math.round(e[0] / 1000); out.push(('   ' + Math.floor(s / 60)).slice(-3) + ':' + ('0' + s % 60).slice(-2) + ' ' + (e[1] === 'problem' ? '!! PROBLEM' : e[1]).toUpperCase() + ' ' + e[2]); });
@@ -1694,7 +1695,7 @@ function drawLogs() {
     d.textContent = new Date(c.when).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' • ' + (c.mins || '?') + ' min • ' + (c.ev || []).length + ' events • ' + (c.problems || 0) + ' problems'; box.appendChild(d); });
 }
 $('logshare').addEventListener('click', async function () {
-  var t = logText(), name = 'tut-logs-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-') + '.txt';
+  var t = logText(), name = 'tut-logs-' + (($('verlbl') || {}).textContent || 'v').replace(/\./g, '_') + '-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-') + '.txt';
   try { var f = new File([t], name, { type: 'text/plain' }); if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: 'Tut session logs' }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
   var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/plain' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 1000);
 });
