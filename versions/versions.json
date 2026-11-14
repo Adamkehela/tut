@@ -93,9 +93,10 @@
    "Version number (vX.Y) shown on the Tut screen and in Parents",
    "Practice coach inside the app: picks the words, sends Tut each next step, makes sure he says the meaning, fixes 'Mashri', moves on when it stalls or a kid asks what's next",
    "Session logs: every session is logged (kid speech, Tut's lines, tools, practice steps, voice matches) with problems noted automatically; Share logs from Parents",
-   "Fixes from the first session log: start without web search when Google refuses it (saves a failed start), no false 'missed meaning'/'repeated line' flags, no '...' on screen, 5 points when a kid uses a learned word on their own"
+   "Fixes from the first session log: start without web search when Google refuses it (saves a failed start), no false 'missed meaning'/'repeated line' flags, no '...' on screen, 5 points when a kid uses a learned word on their own",
+   "Pauses fixed: practice no longer stalls after each word (spelling mismatch bug), quiet background noise is filtered, noise can't cut Tut off mid-sentence, Tut ignores stray sounds, quicker nudge (7 s)"
   ],
   "note": "Needs a Google Gemini key in Parents.",
-  "minor": 27
+  "minor": 28
  }
 ]

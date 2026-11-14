@@ -271,7 +271,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.27</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.28</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -334,7 +334,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.27">v6.27</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.28">v6.28</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -649,6 +649,7 @@ function livePrompt() {
 'CONVERSATION SENSE (most important: act like a real person in the room)',
 '- You only speak when a real person would. Speak when: someone says your name; someone asks you something or clearly says something TO you; you are in the middle of a back-and-forth with someone and it is your turn; or something genuinely big happens that anyone in the room would react to.',
 '- Stay silent when: the kids are talking to each other, playing, arguing among themselves, talking to a parent, on the phone, watching something, or the room is just noisy. Silence is fine. You are allowed to just be there. Do not jump in to "keep things going", do not fill pauses, do not announce yourself, do not ask "what are you doing?" out of nowhere, and do not comment on every sound.',
+'- Background noise, a cough, a single stray word or half a word ("or", "oh", "para") is NOT someone talking to you. Do not answer it, do not ask "who said that?", and do not stop what you were doing. Only react to clear words meant for you.',
 '- If you are not sure the words were meant for you, say nothing. Being ignored for a minute costs nothing; butting in when nobody asked is annoying.',
 '- Interjecting uninvited is something you do rarely, at most once in a long while, and only when you have something genuinely good to add, like a real person who overhears something and cannot resist. Then you go back to being quiet.',
 '- When someone IS talking with you, really engage: listen to what they actually said, answer that, remember what was said a moment ago, build on it, ask a real follow-up when you are curious, and keep the back-and-forth going for as long as they do. Match their energy: short and chill if they are chill, more lively if they are excited, calm and plain if someone is upset or tired.',
@@ -765,7 +766,8 @@ function setupMsg(stage) {
   var m = { model: 'models/' + LCFG.model,
     generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: LCFG.voice } } } },
     systemInstruction: { parts: [{ text: livePrompt() }] } };
-  if (stage < 1) { m.proactivity = { proactiveAudio: true }; m.sessionResumption = L.handle ? { handle: L.handle } : {}; m.contextWindowCompression = { triggerTokens: 20000, slidingWindow: { targetTokens: 10000 } }; m.realtimeInputConfig = { automaticActivityDetection: { endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH', silenceDurationMs: 600 } }; }
+  if (stage < 2) { m.proactivity = { proactiveAudio: true }; m.sessionResumption = L.handle ? { handle: L.handle } : {}; m.contextWindowCompression = { triggerTokens: 20000, slidingWindow: { targetTokens: 10000 } };
+    m.realtimeInputConfig = { automaticActivityDetection: { startOfSpeechSensitivity: 'START_SENSITIVITY_LOW', endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH', prefixPaddingMs: 200, silenceDurationMs: 600 }, activityHandling: 'NO_INTERRUPTION' }; }
   if (stage < 4) { m.outputAudioTranscription = {}; m.inputAudioTranscription = {}; }
   if (stage < 3) m.tools = [{ functionDeclarations: [
     { name: 'award_points', description: 'Give points to one child who just used Egyptian Arabic in the conversation. Returns every child\'s points for today.',
@@ -791,7 +793,7 @@ function setupMsg(stage) {
     { name: 'set_face', description: 'Change the expression on your face to match your vibe.',
       parameters: { type: 'OBJECT', properties: { mood: { type: 'STRING', enum: ['grumpy', 'sideeye', 'eyeroll', 'suspicious', 'shocked', 'bored', 'laughing', 'proud'] } }, required: ['mood'] } }
   ] }];
-  if (stage < 2 && m.tools) m.tools.push({ googleSearch: {} }); /* live web search: weather, news, facts */
+  if (stage < 1 && m.tools) m.tools.push({ googleSearch: {} }); /* live web search: weather, news, facts */
   return m;
 }
 function scores() { var o = {}; active().forEach(function (i) { o[S.names[i]] = S.dpts[i]; }); return o; }
@@ -811,7 +813,7 @@ function runTool0(c) {
     w.ar = String(a.arabic || w.ar).slice(0, 40); w.tr = String(a.say_it || w.tr).slice(0, 40); w.en = String(a.meaning || w.en).slice(0, 60); w.last = Date.now();
     var res = String(a.result || '').toLowerCase();
     w.rep = w.rep || 0; if (res === 'repeated') w.rep++; else if (res === 'recalled' || res === 'right') { w.right++; w.streak++; } else if (res === 'wrong') { w.wrong++; w.streak = 0; }
-    w.mastered = w.right >= 3 && w.streak >= 2; save(); try { coachRecord(S.names[ki], w.tr, res === 'right' ? 'recalled' : res); } catch (e) {}
+    w.mastered = w.right >= 3 && w.streak >= 2; save(); try { PC.lastAr = w.ar; coachRecord(S.names[ki], w.tr, res === 'right' ? 'recalled' : res); } catch (e) {}
     return { result: 'ok', child: S.names[ki], word: w.tr, right: w.right, wrong: w.wrong, mastered: w.mastered, note: w.mastered ? 'Mastered (recalled on their own). Move on to another word.' : 'Not mastered yet: test recall (guess-it) again a few turns later.' };
   }
   if (c.name === 'show_phrase') {
@@ -947,6 +949,10 @@ function startMic() {
   L.proc.onaudioprocess = function (e) {
     if (!L.ready || !L.ws || L.ws.readyState !== 1) return;
     var pcm = to16k(e.inputBuffer.getChannelData(0), L.ac.sampleRate);
+    var ge = 0, gi; for (gi = 0; gi < pcm.f.length; gi++) ge += pcm.f[gi] * pcm.f[gi]; ge = Math.sqrt(ge / pcm.f.length);
+    L.gFloor = L.gFloor || 0.004; if (ge < L.gFloor * 2) L.gFloor += (ge - L.gFloor) * 0.05; else L.gFloor *= 1.0005;
+    var open = ge > Math.max(0.01, L.gFloor * 3); if (open) L.gHold = 6; else if (L.gHold > 0) { L.gHold--; open = true; } /* keep ~0.5 s after speech */
+    if (!open) pcm.i.fill(0);
     L.ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64(pcm.i.buffer), mimeType: 'audio/pcm;rate=16000' } } }));
     try { vFeed(pcm.f); } catch (err) {}
     try { chaosFeed(pcm.f, pcm.f.length / 16000); } catch (err) {}
@@ -968,7 +974,7 @@ function liveConnect() {
     if (L.byUser) { liveStop(''); return; }
     if (!L.ready && L.stage < 4 && !/key|permission|quota|billing|not found|unsupported location/i.test(why)) { L.stage++; liveConnect(); return; }
     if (L.ready && !L.noCC && L.ccT && Date.now() - L.ccT < 4000) { L.noCC = true; L.ready = false; liveConnect(); return; } /* model refused silent notes: reconnect and use the other way */
-    if (!L.ready && /quota|exhausted|billing/i.test(why) && L.stage < 2) { S.noSearchT = Date.now(); save(); L.stage = 2; L.noSearch = true; liveConnect(); return; } /* free tier may not include web search: start without it */
+    if (!L.ready && /quota|exhausted|billing/i.test(why) && L.stage < 1) { S.noSearchT = Date.now(); save(); L.stage = 1; L.noSearch = true; liveConnect(); return; } /* free tier may not include web search: start without it */
     if (/quota|exhausted|rate/i.test(why) && L.on && (L.qTries || 0) < 3) { /* Google's per-minute limit: wait and try again by itself */
       L.qTries = (L.qTries || 0) + 1; L.ready = false; lStatus('Tut needs a minute: Google\'s free limit is used up for now. Trying again in 60 seconds...');
       setTimeout(function () { if (L.on) { L.resumed = !!L.handle; liveConnect(); } }, 60000); return; }
@@ -986,7 +992,7 @@ async function liveStart() {
   if (!window.WebSocket || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { lErr('This browser cannot use the microphone here. Open the app in Edge, Chrome or Safari.'); return; }
   wakeOn();
   logStart();
-  L.on = true; L.byUser = false; L.stage = (S.noSearchT && Date.now() - S.noSearchT < 86400000) ? 2 : 0; L.handle = null; L.resumed = false; L.out = ''; L.heard = ''; L.newTurn = true;
+  L.on = true; L.byUser = false; L.stage = (S.noSearchT && Date.now() - S.noSearchT < 86400000) ? 1 : 0; L.handle = null; L.resumed = false; L.out = ''; L.heard = ''; L.newTurn = true;
   $('ltalk').classList.add('live'); $('ltalklbl').textContent = 'Send Tut to sleep'; lStatus('Waking Tut...'); rigMood('shocked', 1500);
   try { L.ac = L.ac || new (window.AudioContext || window.webkitAudioContext)(); await L.ac.resume();
     if (!L.an) { L.outG = L.ac.createGain(); L.an = L.ac.createAnalyser(); L.an.fftSize = 1024; L.an.smoothingTimeConstant = 0.35; L.outG.connect(L.an); L.an.connect(L.ac.destination); } }
@@ -1597,7 +1603,8 @@ var PWORDS = [['جعان','ga\'ān','hungry'],['عطشان','\'aṭshān','thirs
   ['صغير','ṣughayyar','small'],['سخن','sukhn','hot'],['ساقع','sā\'e\'','cold'],['بكرة','bukra','tomorrow'],['النهارده','en-naharda','today'],
   ['أخويا','akhūya','my brother'],['أختي','ukhti','my sister'],['صاحبي','ṣāḥbi','my friend']];
 var PC = { q: [], cur: null, kid: '', tries: 0, nudges: 0, waitNext: false, meantOk: false, lastAct: 0, timer: null };
-function pcKey(w) { return String(w).toLowerCase().replace(/[^a-z]/g, ''); }
+function pcKey(w) { return String(w).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').replace(/(.)\1+/g, '$1'); }
+function pcSame(word, s) { return !!s && (pcKey(word) === pcKey(s.tr) || (word && s.ar && String(word).replace(/[\u064B-\u0652]/g, '') === s.ar.replace(/[\u064B-\u0652]/g, ''))); }
 function pcBuild() {
   var k = -1; active().forEach(function (i) { if (S.names[i] && pcKey(S.names[i]) === pcKey(PC.kid)) k = i; });
   var bk = k >= 0 ? ((S.words || {})[k] || {}) : {}, have = {}, q = [], x;
@@ -1645,7 +1652,7 @@ function coachHeard(txt) {
 /* Tut recorded an answer */
 function coachRecord(child, word, result) {
   if (!PR.on) return; if (!PC.kid && child) { PC.kid = child; }
-  if (!PC.cur || pcKey(word) !== pcKey(PC.cur.tr)) return;
+  if (!PC.cur || !(pcSame(word, PC.cur) || pcSame(PC.lastAr, PC.cur))) return;
   if (result === 'taught') return;
   if (result === 'wrong' && ++PC.tries < 2) return;
   if (PC.cur.type === 'new') PC.q.splice(Math.min(PC.q.length, 2), 0, { type: 'recall', ar: PC.cur.ar, tr: PC.cur.tr, en: PC.cur.en });
@@ -1656,7 +1663,7 @@ function pcTick() {
   if ((L.playing && L.playing.length) || (L.ac && L.nextT > L.ac.currentTime - 0.5)) { PC.lastAct = Date.now(); return; }
   var idle = Date.now() - PC.lastAct;
   if (PC.waitNext && idle > 2500) { pcNext(); return; }
-  if (idle > 10000) { PC.nudges++; tprob('Practice went quiet for 10 s' + (PC.cur ? ' on "' + PC.cur.tr + '"' : ''));
+  if (idle > 7000) { PC.nudges++; tprob('Practice went quiet for 7 s' + (PC.cur ? ' on "' + PC.cur.tr + '"' : ''));
     if (PC.nudges >= 2) pcNext('Nobody answered, so move on. ');
     else pcSend('It has gone quiet. Keep the practice moving: ' + (PC.cur ? 'repeat the question for "' + PC.cur.en + '" once, short.' : 'give the next word.')); }
 }
