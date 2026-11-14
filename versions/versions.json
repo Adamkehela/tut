@@ -88,7 +88,8 @@
    "Practice button fixed: Tut starts the word challenge out loud right away (also when he was asleep)",
    "Practice mode: 12 rotating openers, clear rules (say-it-back / guess-it rounds, by name), tests each word until mastered; Parents shows the words each kid knows",
    "Tut announces every point change by name and number, rotating lines, sarcastic for lost points; changes made while he slept are announced when he wakes",
-   "Practice is now a slide-right switch that slides back when practice ends; Tut practises only with the kid(s) actually there (by voice, or asks who is practising)"
+   "Practice is now a slide-right switch that slides back when practice ends; Tut practises only with the kid(s) actually there (by voice, or asks who is practising)",
+   "Tut says each word's meaning out loud; tests recall, not just repeating; 1 point for repeating, 5 for remembering on their own; only remembered words count as mastered"
   ],
   "note": "Needs a Google Gemini key in Parents."
  }

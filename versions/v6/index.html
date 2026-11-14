@@ -267,7 +267,7 @@ body.skin-cartoon .stage .sun{display:block!important;position:absolute;left:50%
         <div class="nile"><i id="fambar"></i></div>
       </div>
     </div>
-      <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered (right 3 times, last 2 in a row). Tut tests the others in Practice.</p><div id="wordlist"></div></div>
+      <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
         <h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
@@ -612,8 +612,9 @@ function livePrompt() {
 '- If a long stretch of talking WITH you goes by in English only, slip more Masri into your own replies or make an Arabic word the key to something. Never by announcing a lesson, and never by butting into a conversation that is not with you.',
 '',
 'ARABIC TEACHING LEVEL (set by the parents): ' + LV[lv],
+'- ALWAYS say what a word means out loud, in English, every time you teach or use a new word ("جعان, ga\'ān. It means hungry."). The screen is extra; many kids do not read it. Never just put a word on screen without saying its meaning.',
 '- How you teach at any level: grab real openings in the conversation, never a lesson. Someone is hungry, so it is "جعان؟ ja\'ān? Hungry, huh." Someone wins, so it is "جامد! gāmed!". Something is boring, so it is "ممل. mumill. Boring. Like this whole thing." Say the Masri, then make the meaning obvious from the moment or with a quick English echo, and call show_phrase so it appears on screen.',
-'- Call record_word when you teach a kid a word (result taught) and when they use it right later (result right).',
+'- Call record_word when you teach a kid a word (taught), when they say it back (repeated), and when they use it later on their own (recalled).',
 '- Then use the same word again later in the conversation so it sticks, and react (coolly) when a kid uses it back; give points with award_points.',
 '- Prefer useful everyday words for kids: food, feelings, play, family, "come here", "hurry", "wait", "cool", "no way", numbers, colours. Pick ones they have not had yet (check your memory).',
 '- Only during conversations WITH you. The teaching level never makes you butt into conversations that are not with you.',
@@ -641,11 +642,14 @@ wl,
 '- Spell out every point change out loud in practice too (POINTS rules): name and number, gains and losses.',
 '3. Call each kid who is playing by name for their turn so it is fair and clear. One word at a time. show_phrase every word.',
 '4. Test each word a few times, mixed with others, until the kid gets it right at least three times (record_word tells you when it is mastered), then move on. Start with words they are still learning, mix in one or two new ones, and use mastered ones only as quick wins.',
-'5. Every answer: record_word (right, wrong or taught) and award_points when right. Wrong answers get a quick, kind correction and another try later, never mockery.',
+'4b. Say every new word AND its English meaning out loud before asking them to repeat it.',
+'4c. Learning means remembering, not parroting. After a kid repeats a new word, come back to it a few turns later with a guess-it round (you give the English or a hint, they must produce the Masri themselves). A word only counts as known when they recall it on their own; keep testing words they only repeated.',
+'4d. Scoring: 1 point for repeating a word you just said, 5 points for recalling it on their own. Say it out loud each time.',
+'5. Every answer: record_word (taught = you just taught it, repeated = they said it back, recalled = they remembered it on their own, wrong) and award_points (1 for repeated, 5 for recalled). Wrong answers get a quick, kind correction and another try later, never mockery.',
 '6. After about 6 to 8 rounds or when they lose interest, wrap up in one line (who nailed what), call end_practice, and go back to normal. If a message says PRACTICE OVER, wrap up the same way.',
 'POINTS (always announce, out loud, every single time)',
 '- Every time points go up or down (award_points, change_points, or the app tells you a parent changed them), say it right away with the kid\'s name and the exact number. Never change points silently.',
-'- Gains: short, warm-ish, cool. Rotate, never the same twice in a row. For example: "Yaseen, ten points. Look at you." / "Emy just bagged twenty points. Show-off." / "جامد يا ريان! Ten points." / "That is ten points for Emy. Write it down, somebody." / "Ten points to Yaseen. I am not crying, it is the dust." / "Twenty for Emy. The tomb is impressed. Slightly."',
+'- Gains: short, warm-ish, cool. Rotate, never the same twice in a row. For example: "Yaseen, five points. You remembered. Look at you." / "Emy just bagged five points from memory. Show-off." / "جامد يا ريان! One point. Now remember it tomorrow for five." / "One point for Emy for saying it back. Easy one." / "Five points to Yaseen, all on his own. I am not crying, it is the dust." / "That is one point, Emy. Parroting pays a little; remembering pays more."',
 '- Losses: sarcastic, dry, never mean about the kid themself, always about the moment. Rotate. For example: "Ooh. Yaseen just lost five points. Tragic. I will light a candle." / "Emy, minus ten. Congratulations, you are going backwards." / "And that is five points gone for Ryyaan. Bye-bye, points. يا خسارة." / "Minus five, Yaseen. A moment of silence for your score." / "Ten points evaporated from Emy. Impressive, in the wrong direction." / "خلاص, Ryyaan: minus five. The points have left the building."',
 '- Make up new lines in the same spirit; do not reuse the examples word for word every time.',
 '',
@@ -730,7 +734,7 @@ mem,
 '',
 'POINTS (quiet, in the background)',
 '- The kids here are: ' + kids + '.',
-'- Whenever a kid uses Egyptian Arabic on their own in the conversation, even one word, call award_points with their name: 10 for a word or a copied phrase, 20 for a phrase they came up with themselves. React briefly and coolly, or not at all if they are busy with something else ("Hm. Not bad."); never like a proud teacher, and never interrupt their conversation just to react. Never offer points as a bribe to say something, and never take points away.',
+'- Whenever a kid uses Egyptian Arabic on their own in the conversation, even one word, call award_points with their name: 1 point for saying a word you just gave them (repeating it), 5 points for remembering and using a word on their own without you saying it first. React briefly and coolly, or not at all if they are busy with something else ("Hm. Not bad."); never like a proud teacher, and never interrupt their conversation just to react. Never offer points as a bribe to say something, and never take points away.',
 '- When you use a new Arabic phrase yourself, call show_phrase so it appears on the screen. Do not mention the screen.',
 '- The app keeps the score; never invent totals. If asked for scores, or when someone says "خلاص" (khalas) or "end", use the totals from the last tool result, crown the top kid El Basha of the day in one dry line, and say good night.',
   ].join('\n');
@@ -743,9 +747,9 @@ function setupMsg(stage) {
   if (stage < 4) { m.outputAudioTranscription = {}; m.inputAudioTranscription = {}; }
   if (stage < 3) m.tools = [{ functionDeclarations: [
     { name: 'award_points', description: 'Give points to one child who just used Egyptian Arabic in the conversation. Returns every child\'s points for today.',
-      parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'The child\'s name exactly as listed' }, points: { type: 'INTEGER', description: '10 for a word or copied phrase, 20 for their own phrase' } }, required: ['child', 'points'] } },
+      parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'The child\'s name exactly as listed' }, points: { type: 'INTEGER', description: '1 for saying back a word you just gave them, 5 for remembering a word on their own' } }, required: ['child', 'points'] } },
     { name: 'record_word', description: 'Keep the record of which Masri words each kid knows. Call it every time a kid is taught a word, gets a word right, or gets it wrong (in practice and in normal chat).',
-      parameters: { type: 'OBJECT', properties: { child: { type: 'STRING' }, say_it: { type: 'STRING', description: 'English-letters pronunciation, e.g. gā\'ān' }, arabic: { type: 'STRING' }, meaning: { type: 'STRING' }, result: { type: 'STRING', description: 'taught, right or wrong' } }, required: ['child', 'say_it', 'meaning', 'result'] } },
+      parameters: { type: 'OBJECT', properties: { child: { type: 'STRING' }, say_it: { type: 'STRING', description: 'English-letters pronunciation, e.g. gā\'ān' }, arabic: { type: 'STRING' }, meaning: { type: 'STRING' }, result: { type: 'STRING', description: 'taught, repeated (said it back after you), recalled (remembered it on their own), or wrong' } }, required: ['child', 'say_it', 'meaning', 'result'] } },
     { name: 'end_practice', description: 'Call when a practice session is over (you wrapped up, or the kids moved on). Slides the practice switch back.', parameters: { type: 'OBJECT', properties: {} } },
     { name: 'show_phrase', description: 'Put the Egyptian Arabic phrase you just used on the screen.',
       parameters: { type: 'OBJECT', properties: { arabic: { type: 'STRING', description: 'The phrase in Arabic script' }, say_it: { type: 'STRING', description: 'How to say it, in English letters' }, meaning: { type: 'STRING', description: 'Short English meaning' } }, required: ['say_it', 'meaning'] } },
@@ -773,7 +777,7 @@ function runTool(c) {
   var a = c.args || {};
   if (c.name === 'award_points') {
     var i = findKid(a.child); if (i < 0) return { error: 'No child called ' + a.child + '. The children are: ' + active().map(function (x) { return S.names[x]; }).join(', ') };
-    var pts = Number(a.points) >= 20 ? 20 : 10; award(i, pts);
+    var pts = Number(a.points) >= 5 ? 5 : 1; award(i, pts);
     return { result: 'ok', gave: pts, to: S.names[i], points_today: scores(), say_now: 'Announce it out loud right now: ' + S.names[i] + ' +' + pts + ' (POINTS style, fresh wording).' };
   }
   if (c.name === 'end_practice') { if (Date.now() - PR.t < 45000) return { result: 'ignored', note: 'Practice just started. Keep going with the rounds; only call end_practice after you have wrapped up.' }; try { practiceStop(true); } catch (e) {} return { result: 'ok' }; }
@@ -783,9 +787,9 @@ function runTool(c) {
     var w = bk[key] = bk[key] || { ar: '', tr: '', en: '', right: 0, wrong: 0, streak: 0, first: Date.now() };
     w.ar = String(a.arabic || w.ar).slice(0, 40); w.tr = String(a.say_it || w.tr).slice(0, 40); w.en = String(a.meaning || w.en).slice(0, 60); w.last = Date.now();
     var res = String(a.result || '').toLowerCase();
-    if (res === 'right') { w.right++; w.streak++; } else if (res === 'wrong') { w.wrong++; w.streak = 0; }
+    w.rep = w.rep || 0; if (res === 'repeated') w.rep++; else if (res === 'recalled' || res === 'right') { w.right++; w.streak++; } else if (res === 'wrong') { w.wrong++; w.streak = 0; }
     w.mastered = w.right >= 3 && w.streak >= 2; save();
-    return { result: 'ok', child: S.names[ki], word: w.tr, right: w.right, wrong: w.wrong, mastered: w.mastered, note: w.mastered ? 'Mastered. Move on to another word.' : 'Not mastered yet: test it again later.' };
+    return { result: 'ok', child: S.names[ki], word: w.tr, right: w.right, wrong: w.wrong, mastered: w.mastered, note: w.mastered ? 'Mastered (recalled on their own). Move on to another word.' : 'Not mastered yet: test recall (guess-it) again a few turns later.' };
   }
   if (c.name === 'show_phrase') {
     if (!a.say_it && !a.arabic) return { error: 'Give say_it and meaning' };
@@ -1542,7 +1546,7 @@ function drawWords() {
     h.textContent = S.names[k] + ': ' + nm + ' mastered, ' + (ks.length - nm) + ' learning'; box.appendChild(h);
     if (!ks.length) { var p = document.createElement('p'); p.className = 'muted'; p.textContent = 'No words yet.'; box.appendChild(p); }
     ks.forEach(function (x) { var w = bk[x], r = document.createElement('div'); r.className = 'memrow';
-      var t = document.createElement('span'); t.textContent = (w.mastered ? '✓ ' : '• ') + (w.ar ? w.ar + '  ' : '') + w.tr + ' = ' + w.en + '  (' + w.right + ' right, ' + w.wrong + ' wrong)';
+      var t = document.createElement('span'); t.textContent = (w.mastered ? '✓ ' : '• ') + (w.ar ? w.ar + '  ' : '') + w.tr + ' = ' + w.en + '  (remembered ' + w.right + 'x, repeated ' + (w.rep || 0) + 'x, missed ' + w.wrong + 'x)';
       var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Delete'; b.setAttribute('aria-label', 'Delete ' + w.tr + ' for ' + S.names[k]);
       b.addEventListener('click', function () { delete bk[x]; save(); drawWords(); }); r.appendChild(t); r.appendChild(b); box.appendChild(r); });
   });
