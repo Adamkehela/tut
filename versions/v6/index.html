@@ -257,6 +257,7 @@ body:not(.livefit) #verlbl{display:none}
         <p class="muted" id="plmsg">Enter the parents password.</p>
         <label for="plpw">PIN<input id="plpw" type="password" inputmode="numeric" autocomplete="off"></label>
         <label for="plpw2" id="plpw2l" hidden>Type the PIN again<input id="plpw2" type="password" inputmode="numeric" autocomplete="off"></label>
+        <button class="stone" id="plface" type="button" hidden>Open with Face ID</button>
         <button class="stone" id="plgo" type="button">Open</button>
         <button class="stone" id="plforgot" type="button">Forgot PIN</button>
         <button class="stone" id="plback" type="button">Back to Tut</button>
@@ -280,8 +281,9 @@ body:not(.livefit) #verlbl{display:none}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.38</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.39</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
+        <button class="stone" id="plfset" type="button">Use Face ID</button><p class="muted" id="plfmsg"></p>
       </div>
       <div class="group">
         <h2>Children</h2>
@@ -348,7 +350,7 @@ body:not(.livefit) #verlbl{display:none}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.38">v6.38</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.39">v6.39</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -1586,7 +1588,36 @@ function plockShow() {
   $('plh').textContent = setting ? 'Set a parents PIN' : 'Parents only';
   $('plmsg').textContent = setting ? 'Choose a PIN (at least 4 digits). Kids will not be able to open Parents without it.' : 'Enter the parents PIN.';
   $('plpw2l').hidden = !setting; $('plgo').textContent = setting ? 'Save PIN' : 'Open'; $('plforgot').hidden = setting;
+  var fid = !setting && !PL.open && S.pfid && plFaceOK(); $('plface').hidden = !fid; plFaceDraw();
+  if (fid && document.visibilityState === 'visible' && $('v-par').classList.contains('on') && !PL.faceBusy) plFace(); /* ask for the face right away */
 }
+/* ---- Face ID (a passkey that only lives on this phone) ---- */
+function plFaceOK() { return !!(window.PublicKeyCredential && window.isSecureContext && navigator.credentials); }
+function b64u(b) { return btoa(String.fromCharCode.apply(null, new Uint8Array(b))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+function ub64(t) { t = t.replace(/-/g, '+').replace(/_/g, '/'); while (t.length % 4) t += '='; return Uint8Array.from(atob(t), function (c) { return c.charCodeAt(0); }); }
+function plFaceDraw() {
+  var b = $('plfset'), m = $('plfmsg'); if (!b) return;
+  if (!plFaceOK()) { b.hidden = true; m.textContent = 'Face ID works in the installed app (opened from the home screen), not in this copy.'; return; }
+  b.hidden = false; b.textContent = S.pfid ? 'Turn off Face ID' : 'Use Face ID'; m.textContent = S.pfid ? 'Face ID is on. The PIN still works as a backup.' : 'Open Parents with your face instead of typing the PIN. The PIN stays as a backup.';
+}
+async function plFace() {
+  if (!S.pfid || PL.faceBusy) return; PL.faceBusy = true;
+  try {
+    var c = await navigator.credentials.get({ publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), allowCredentials: [{ type: 'public-key', id: ub64(S.pfid) }], userVerification: 'required', timeout: 60000 } });
+    if (c && c.response && (new Uint8Array(c.response.authenticatorData)[32] & 4)) { PL.open = true; plOpened(); plockShow(); window.scrollTo(0, 0); }
+    else $('plerr').textContent = 'Face ID did not confirm. Use the PIN.';
+  } catch (e) { if ($('plock') && !$('plock').hidden) $('plerr').textContent = 'Face ID was cancelled or did not match. Tap "Open with Face ID" to try again, or use the PIN.'; }
+  PL.faceBusy = false;
+}
+$('plface').addEventListener('click', function () { $('plerr').textContent = ''; plFace(); });
+$('plfset').addEventListener('click', async function () {
+  if (S.pfid) { S.pfid = null; save(); plFaceDraw(); return; }
+  try {
+    var c = await navigator.credentials.create({ publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), rp: { name: 'Tut parents' }, user: { id: crypto.getRandomValues(new Uint8Array(16)), name: 'Tut parents', displayName: 'Tut parents' },
+      pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }], authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'preferred' }, timeout: 60000, attestation: 'none' } });
+    S.pfid = b64u(c.rawId); save(); plFaceDraw(); $('plfmsg').textContent = 'Face ID is on. Next time, tapping Parents asks for your face.';
+  } catch (e) { $('plfmsg').textContent = 'Face ID was not set up: ' + (e.message || e.name || e) + '. Check that Face ID is turned on for this phone.'; }
+});
 $('plgo').addEventListener('click', async function () {
   var p = $('plpw').value, setting = !S.ppw || PL.changing;
   if (setting) {
