@@ -185,6 +185,7 @@ body.skin-cartoon .stage .sun{display:block!important;position:absolute;left:50%
 #vrecard{background:#1E2A5A;color:#FFF6DC;border-radius:22px;padding:16px 18px;margin:10px 0}
 #vrecard .vrhow{margin:0 0 8px;font-weight:800;color:#FFD66B;font-size:16px}
 #vrecard .vrtext{margin:0 0 12px;font-size:24px;line-height:1.35;font-weight:700}
+#vrecard .vrwarn{margin:0 0 10px;padding:8px 12px;border-radius:12px;background:#B3261E;color:#fff;font-weight:800;font-size:17px}
 #vrecard .vrbar{height:10px;border-radius:5px;background:rgba(255,255,255,.2);overflow:hidden}
 #vrecard .vrbar div{height:100%;background:#FFD66B;transition:width 1s linear}
 #verlbl{position:fixed;left:10px;bottom:calc(4px + env(safe-area-inset-bottom));z-index:40;font-size:12px;font-weight:700;color:rgba(255,240,210,.55);pointer-events:none;letter-spacing:.5px}
@@ -278,7 +279,7 @@ body:not(.livefit) #verlbl{display:none}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.35</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.36</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -346,7 +347,7 @@ body:not(.livefit) #verlbl{display:none}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.35">v6.35</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.36">v6.36</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -975,6 +976,9 @@ function startMic() {
     L.ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64(pcm.i.buffer), mimeType: 'audio/pcm;rate=16000' } } }));
     try { vFeed(pcm.f); } catch (err) {}
     try { chaosFeed(pcm.f, pcm.f.length / 16000); } catch (err) {}
+    try { var lv = 0, q; for (q = 0; q < pcm.f.length; q += 4) lv = Math.max(lv, Math.abs(pcm.f[q])); /* microphone gives nothing at all for 8 s: tell the user */
+      if (lv > 0.002) { L.micOkT = Date.now(); if (L.micWarned) { L.micWarned = false; lStatus('Tut is listening. Just talk.'); } }
+      else if (Date.now() - (L.micOkT || (L.micOkT = Date.now())) > 8000 && !L.micWarned) { L.micWarned = true; lStatus('⚠ No sound is coming from the microphone. Check it is allowed for this app and not muted or covered.'); try { tprob('Microphone silent for 8 s'); } catch (e2) {} } } catch (err) {}
   };
 }
 function liveConnect() {
@@ -1148,7 +1152,8 @@ function vNoise(x, snr) { var o = new Float32Array(x.length), p = 0, i, ex = 0, 
   var n = new Float32Array(x.length); for (i = 0; i < x.length; i++) { b += (Math.random() * 2 - 1); m += (b - m) / 400; n[i] = b - m; ex += x[i] * x[i]; en += n[i] * n[i]; }
   var g = Math.sqrt(ex / Math.max(1e-9, en)) / Math.pow(10, snr / 20); for (i = 0; i < x.length; i++) o[i] = x[i] + n[i] * g; return o; }
 async function vEnroll(i, x, add) {
-  var v = vVoiced(x); if (v.length < 16000 * 6) return { ok: false, why: 'Not enough talking. I need about 10 seconds of voice. Try again, closer to the device.' };
+  var v = vVoiced(x); if (v.length < 16000 * 1) return { ok: false, why: '⚠ No voice was heard at all. Check that the microphone is allowed for this app and not muted, then try again and read out loud, close to the phone.' };
+  if (v.length < 16000 * 6) return { ok: false, why: 'Not enough talking was heard (only ' + Math.round(v.length / 16000) + ' seconds). Read all the words out loud, a bit louder and closer to the phone, and try again.' };
   var embs = [], k, j, e;
   for (k = 0; k + 24000 <= v.length; k += 12000) { e = await vEmbed(v.subarray(k, k + 24000)); if (e) embs.push(e); }
   for (k = 0; k + 48000 <= v.length; k += 12000) { e = await vEmbed(v.subarray(k, k + 48000)); if (e) embs.push(e); }
@@ -1232,10 +1237,12 @@ var VSCRIPT = [
   { how: 'Normal voice', secs: 10, text: 'Hi Tut! My name is NAME. I like pizza, ice cream and chocolate cake. One, two, three, four, five, six, seven, eight, nine, ten.' },
   { how: 'Loud and excited, like you just won!', secs: 9, text: 'Yes! I won the game! Go, go, go! The big brown dog jumps over the fence. Where is my red ball? Wow, that was so cool!' },
   { how: 'Quiet and slow, like someone is sleeping', secs: 9, text: 'Shh, the baby is asleep. The little cat is hiding under the blue blanket. Yalla, good night Tut. Shukran, see you tomorrow.' }];
+function vLevel(f) { var e = 0, k; for (k = 0; k < f.length; k++) e += f[k] * f[k]; return Math.sqrt(e / Math.max(1, f.length)); }
 function vCard(i, part, left, total) {
   var c = $('vrecard'); if (!c) return; c.hidden = false; c.textContent = '';
   var h = document.createElement('p'); h.className = 'vrhow'; h.textContent = pName(i) + ' • part ' + (part + 1) + ' of ' + total + ' • ' + VSCRIPT[part].how; c.appendChild(h);
   var t = document.createElement('p'); t.className = 'vrtext'; t.textContent = VSCRIPT[part].text.replace('NAME', pName(i)); c.appendChild(t);
+  if (V.quietWarn) { var w = document.createElement('p'); w.className = 'vrwarn'; w.setAttribute('role', 'alert'); w.textContent = '⚠ No voice heard. Check the microphone is allowed and not muted, then read louder and closer to the phone.'; c.appendChild(w); }
   var bar = document.createElement('div'); bar.className = 'vrbar'; var f = document.createElement('div'); f.style.width = Math.round(100 * (1 - left / VSCRIPT[part].secs)) + '%'; bar.appendChild(f); c.appendChild(bar);
 }
 async function vRecord(i, btn, msg, add) {
@@ -1251,10 +1258,12 @@ async function vRecord(i, btn, msg, add) {
   for (var pi = 0; pi < parts.length; pi++) {
     var part = parts[pi], left = VSCRIPT[part].secs;
     vCard(i, part, left, add ? 1 : 3); await new Promise(function (r) { setTimeout(r, 1200); }); /* a moment to read */
-    pr.onaudioprocess = function (e) { chunks.push(to16kF(e.inputBuffer.getChannelData(0), ac.sampleRate)); };
+    var heardT = Date.now(); V.quietWarn = false;
+    pr.onaudioprocess = function (e) { var f = to16kF(e.inputBuffer.getChannelData(0), ac.sampleRate); chunks.push(f); if (vLevel(f) > 0.015) { heardT = Date.now(); V.quietWarn = false; } else if (Date.now() - heardT > 3000) V.quietWarn = true; };
     while (left > 0) { btn.textContent = left + ' s'; vCard(i, part, left, add ? 1 : 3); await new Promise(function (r) { setTimeout(r, 1000); }); left--; }
     pr.onaudioprocess = null;
   }
+  V.quietWarn = false;
   try { src.disconnect(); pr.disconnect(); } catch (e) {} stream.getTracks().forEach(function (t) { t.stop(); }); try { ac.close(); } catch (e) {}
   $('vrecard').hidden = true;
   var n = 0, k = 0; chunks.forEach(function (c) { n += c.length; }); var x = new Float32Array(n); chunks.forEach(function (c) { x.set(c, k); k += c.length; });
@@ -1298,7 +1307,7 @@ async function vTestRun(i) {
     var n = 0, o = 0; chunks.forEach(function (c) { n += c.length; }); var x = new Float32Array(n); chunks.forEach(function (c) { x.set(c, o); o += c.length; });
     var vx = vVoiced(x), r = vx.length > 8000 ? await vWho(vx) : null; V.prevSc = null;
     var got = r && r.i >= 0 ? r.i : -1, ok = got === i; res.push({ ok: ok, sure: !!(r && r.p >= 0.9 && got === r.best.i), p: r ? r.p : 0, got: got });
-    msg.textContent = (ok ? '✓ ' : '✗ ') + (got >= 0 ? 'Heard ' + pName(got) : 'Not sure who that was') + (r ? ' (' + Math.round(r.p * 100) + '% sure)' : '');
+    msg.textContent = vx.length <= 8000 ? '⚠ No voice heard for that sentence. Check the microphone and speak louder.' : (ok ? '✓ ' : '✗ ') + (got >= 0 ? 'Heard ' + pName(got) : 'Not sure who that was') + (r ? ' (' + Math.round(r.p * 100) + '% sure)' : '');
     await new Promise(function (r2) { setTimeout(r2, 900); });
   }
   stream.getTracks().forEach(function (t) { t.stop(); }); try { ac.close(); } catch (e) {} V.rec = null;
