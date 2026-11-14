@@ -271,7 +271,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.32</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.33</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -280,6 +280,11 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
         <label for="n1">Child 2 name<input id="n1" type="text" maxlength="14" autocomplete="off"></label>
         <label for="n2">Child 3 name<input id="n2" type="text" maxlength="14" autocomplete="off"></label>
         <label for="n3">Child 4 name (leave empty if not playing)<input id="n3" type="text" maxlength="14" autocomplete="off"></label>
+        <p class="muted">How Tut should say each name, in Arabic letters (fills in by itself for common names; fix it if he says a name wrong):</p>
+        <label for="na0" id="na0l">Child 1<input id="na0" type="text" dir="rtl" maxlength="20" autocomplete="off"></label>
+        <label for="na1" id="na1l">Child 2<input id="na1" type="text" dir="rtl" maxlength="20" autocomplete="off"></label>
+        <label for="na2" id="na2l">Child 3<input id="na2" type="text" dir="rtl" maxlength="20" autocomplete="off"></label>
+        <label for="na3" id="na3l">Child 4<input id="na3" type="text" dir="rtl" maxlength="20" autocomplete="off"></label>
       </div>
       <div class="group">
         <h2>Family favor</h2>
@@ -334,7 +339,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.32">v6.32</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.33">v6.33</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -595,7 +600,7 @@ function findKid(name) {
   return hit;
 }
 function livePrompt() {
-  var kids = active().map(function (i) { return S.names[i] + ' (' + S.dpts[i] + ' points today)'; }).join(', ');
+  var kids = active().map(function (i) { var ar = (typeof nameAr === 'function') ? nameAr(i) : ''; return S.names[i] + (ar ? ' (say it the Egyptian way: ' + ar + ')' : '') + ' (' + S.dpts[i] + ' points today)'; }).join(', ');
   var mem = S.mem.length ? S.mem.map(function (m) { return '- [' + m.d + (m.k ? ', ' + m.k : '') + '] ' + m.n; }).join('\n') : '- (nothing yet; this is the first hangout you remember)';
   var lv = S.teach == null ? 3 : S.teach;
   var LV = ['0/10: only use Masri when it comes up naturally; do not go out of your way to teach.',
@@ -678,6 +683,8 @@ wl,
 '',
 '- COACH and app messages are silent stage directions for you. Never read them out, never describe them, and never think out loud (no "The user is asking...", "I need to...", "I will call..."). Just do the thing, in character.',
 '- COACH messages: during practice the app sends COACH messages with the exact next step (which word, new word or memory test, for which kid). Follow each one right away, out loud. Do not wait to be asked "what is next". After a kid answers, call record_word, say the points, and the coach sends the next step.',
+'- If someone tells you who they are ("I am Mohamed", "it is Emy"), believe them over any voice match, use that name, and give points only to the person who actually answered. Never guess a kid\'s name for points; if you do not know who answered, ask.',
+'- Names: always say the kids\' names the Egyptian Arabic way, as written in Arabic letters next to each name (Yaseen = ياسين, yaa-SEEN). Never anglicise them (never "Jason").',
 '- Pronunciation: "Masri" (مصري) is said with an S: "MAS-ree", never "Mashri". Cairo pronunciation: ق is a glottal stop (قطة = \'oṭṭa), ج is a hard g (جعان = ga\'ān).',
 '- Never call end_practice at the start of practice; only after real rounds and your wrap-up line.',
 '- PRACTICE: when a message says PRACTICE BUTTON, the kids are asking you directly. Always answer it out loud immediately and run the word challenge it describes. This overrides staying quiet.',
@@ -1512,8 +1519,8 @@ var POPEN = ["Oh, you are asking for a class now? Alright, alright. Tut academy 
 function practiceOpener() { var used = S.popen || [], c = POPEN.map(function (x, i) { return i; }).filter(function (i) { return used.indexOf(i) < 0; }); if (!c.length) { used = []; c = POPEN.map(function (x, i) { return i; }); } var k = c[Math.floor(Math.random() * c.length)]; used.push(k); S.popen = used.slice(-8); save(); return POPEN[k]; }
 function practiceSend(viaText) {
   var seen = active().filter(function (k) { return V.seen && V.seen[k] && Date.now() - V.seen[k] < 60000; }).map(function (k) { return S.names[k]; });
-  var who = seen.length ? ' The app recognised these kids talking in the last few minutes: ' + seen.join(', ') + '. Only they are probably here. Start with them, by name.' : ' The app does not know which kids are here. Right after your opener, ask who is practising with you, and play ONLY with the kid(s) who answer.';
-  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise Masri with them. Start straight away, out loud, following PRACTICE MODE. Open with this line (in your own voice, Masri sprinkles allowed): "' + (L.pOpen = practiceOpener()) + '" Then explain the game in one sentence: you give a word and its meaning, they say it back for 1 point, and later you test if they remember it for 5 points.' + who + ' The app coach will send each next step as a COACH message; follow them exactly and keep moving.' + (PC.cur ? '' : pcFirstStep());
+  var who = seen.length ? ' The player is probably ' + seen.join(' or ') + '.' : ' Do not ask who is practising; just say "you" until the app tells you the name from their voice.';
+  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise Masri with them. Start straight away, out loud, following PRACTICE MODE. Open with this line (in your own voice, Masri sprinkles allowed): "' + (L.pOpen = practiceOpener()) + '" Then explain the game in one sentence: you give a word and its meaning, they say it back for 1 point, and later you test if they remember it for 5 points.' + who + ' Keep the opener to two short sentences, then go straight into the first word. The app coach will send each next step as a COACH message.' + (PC.cur ? '' : pcFirstStep());
   if (!(L.ready && L.ws && L.ws.readyState === 1)) return false;
   if (!viaText && !L.noCC) L.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
   else L.ws.send(JSON.stringify({ realtimeInput: { text: msg } }));
@@ -1528,7 +1535,7 @@ function practiceStart() { try { tlog('practice', 'started'); } catch (e) {}
   if (!(L.on && L.ready)) { L.practiceNext = true; practiceUI(true); PR.t = Date.now(); if (!L.on) $('ltalk').click(); return; } /* already waking up: do not toggle him off */
   var heard = L.audioT || 0; practiceUI(true); PR.t = Date.now(); lStatus('Starting practice...'); pcStart();
   if (!practiceSend(false)) return;
-  setTimeout(function () { if (PR.on && (L.audioT || 0) <= heard && L.on) practiceSend(true); }, 5000);
+  setTimeout(function () { if (PR.on && (L.audioT || 0) <= heard && L.on) practiceSend(true); }, 12000);
 }
 function practiceStop(fromTut) { try { tlog('practice', 'stopped by ' + (fromTut ? 'Tut' : 'kid (slider)')); } catch (e) {} if (!PR.on) return; if (!fromTut || Date.now() - PR.t >= 45000 || PR.endAsked) { clearInterval(PC.timer); PC.cur = null; } if (fromTut && Date.now() - PR.t < 45000 && !PR.endAsked) return; PR.endAsked = false; practiceUI(false);
   if (!fromTut) L.practiceNext = false;
@@ -1560,7 +1567,7 @@ function goView(v) {
 }
 function plOpened() { /* parent is in: Tut stops listening and goes quiet */
   if (L.on) { L.byUser = true; liveStop(''); }
-  drawPar(); drawFav(); drawWords(); drawLogs();
+  drawPar(); drawFav(); drawWords(); drawLogs(); drawNames();
 }
 $('plback').addEventListener('click', function () { goView('live'); });
 $('pdone').addEventListener('click', function () { save(); goView('live'); });
@@ -1633,7 +1640,7 @@ function pcBuild() {
   PC.q = q;
 }
 function pcStepText(s) {
-  var who = PC.kid || 'the kid who is practising';
+  var who = PC.kid || 'you (the player)';
   if (s.type === 'new') return 'NEW WORD for ' + who + ': say "' + s.ar + '" (' + s.tr + ') clearly, and say out loud in English that it means "' + s.en + '". Then ask ' + who + ' to say it back. Call show_phrase for it.';
   return 'MEMORY TEST for ' + who + ': ask "How do you say \'' + s.en + '\' in Masri?" Do NOT say the answer first. The answer is "' + s.tr + '" (' + s.ar + '). If they get it: 5 points. If not: give a hint, then the answer and its meaning, and move on.';
 }
@@ -1650,8 +1657,8 @@ function pcNext(prefix) {
   pcSend((prefix || '') + pcStepText(PC.cur));
 }
 function pcStart() { PC.kid = ''; PC.waitWho = false; var seen = active().filter(function (k) { return V.seen && V.seen[k] && Date.now() - V.seen[k] < 60000; });
-  if (seen.length === 1) PC.kid = S.names[seen[0]]; else PC.waitWho = true; pcBuild(); PC.cur = null; clearInterval(PC.timer); PC.timer = setInterval(pcTick, 1000); }
-function pcFirstStep() { if (PC.waitWho) return ' Ask who is practising, then wait: the coach will send the first word once someone answers.'; PC.cur = PC.q.shift() || null; return PC.cur ? ' First step: ' + pcStepText(PC.cur) : ''; }
+  if (seen.length === 1) PC.kid = S.names[seen[0]]; else PC.findWho = true; pcBuild(); PC.cur = null; clearInterval(PC.timer); PC.timer = setInterval(pcTick, 1000); }
+function pcFirstStep() { PC.cur = PC.q.shift() || null; return PC.cur ? ' First step: ' + pcStepText(PC.cur) : ''; }
 /* Tut finished talking */
 function coachTurn(said) {
   if (!PR.on) return; PC.lastAct = Date.now(); var t = String(said || '');
@@ -1671,6 +1678,11 @@ function coachHeard(txt) {
   if (!PR.on) return;
   if (PC.waitWho && L.who >= 0 && String(txt).trim().length > 2) { /* first person to answer is the one practising */
     PC.waitWho = false; PC.kid = pName(L.who); pcBuild(); pcNext((L.who >= 4 ? PC.kid + ' (a parent) is practising: same game, no points or records. ' : PC.kid + ' is practising. ')); return; }
+  var said = pcNameSaid(txt); /* "I am Mohamed" / "it's Emy": what they say beats the voice match */
+  if (said >= 0 && (PC.findWho || pcKey(pName(said)) !== pcKey(PC.kid))) { PC.findWho = false; PC.kid = pName(said); L.who = said; L.nameT = Date.now(); L.nameWho = said;
+    try { tlog('note', 'Player said they are ' + PC.kid); } catch (e) {}
+    pcSend('The player just said they are ' + PC.kid + (said >= 4 ? ' (a parent: same game, no points or records)' : '') + '. Use that name from now on, not anyone else\'s. Keep going.'); }
+  if (PC.findWho && L.who >= 0 && String(txt).trim().length > 1) { PC.findWho = false; PC.kid = pName(L.who); try { tlog('note', 'Practice player is ' + PC.kid); } catch (e) {} pcSend('The player is ' + PC.kid + (L.who >= 4 ? ' (a parent: no points or records)' : '') + '. Use their name from now on; keep going.'); }
   if (PC.waitWho) return;
   if (PC.cur && !PC.waitNext && pcSaid(String(txt).slice(-60), PC.cur)) { /* they said it: count it and move on after Tut's reply */
     PC.heardOk = (PC.heardOk || 0) + 1; PC.waitNext = true; PC.got = { who: L.who, step: PC.cur };
@@ -1731,6 +1743,25 @@ function coachSpot(txt) {
     var hit = (w.ar && t.indexOf(w.ar.replace(/[ً-ْ]/g, '')) >= 0) || (pcKey(w.tr).length > 3 && pcKey(tl).indexOf(pcKey(w.tr)) >= 0);
     if (hit && now - (PC.spotted[k + key] || 0) > 60000) { PC.spotted[k + key] = now; try { tlog('note', S.names[k] + ' used "' + w.tr + '" on their own'); } catch (e) {}
       pcSend(S.names[k] + ' just used "' + w.tr + '" (' + w.en + ') on their own, from memory. That is a recall: call record_word with result recalled, give 5 points, and say it out loud.'); } });
+}
+
+/* ---- how Tut says names ---- */
+var NAMEAR = { yaseen: 'ياسين', yassin: 'ياسين', yasin: 'ياسين', emy: 'إيمي', emmy: 'إيمي', emi: 'إيمي', ryyaan: 'ريّان', rayan: 'ريّان', rayyan: 'ريّان', ryan: 'ريّان', omar: 'عمر', laila: 'ليلى', layla: 'ليلى',
+  adam: 'آدم', mohamed: 'محمد', mohammed: 'محمد', ahmed: 'أحمد', ali: 'علي', mariam: 'مريم', maryam: 'مريم', yusuf: 'يوسف', youssef: 'يوسف', nour: 'نور', noor: 'نور', sara: 'سارة', sarah: 'سارة',
+  hana: 'هنا', salma: 'سلمى', malak: 'ملك', zein: 'زين', zain: 'زين', karim: 'كريم', hamza: 'حمزة', amir: 'أمير', amira: 'أميرة', farida: 'فريدة', jana: 'جنى', emily: 'إيميلي' };
+function nameAr(i) { S.na = S.na || []; if (S.na[i]) return S.na[i]; var k = String(S.names[i] || '').toLowerCase().replace(/[^a-z]/g, ''); return NAMEAR[k] || ''; }
+function drawNames() { [0, 1, 2, 3].forEach(function (i) { var el = $('na' + i); if (!el) return; $('na' + i + 'l').firstChild.textContent = (S.names[i] || 'Child ' + (i + 1)); el.value = nameAr(i); }); }
+[0, 1, 2, 3].forEach(function (i) { $('na' + i).addEventListener('input', function () { S.na = S.na || []; S.na[i] = this.value.trim(); save(); }); });
+
+/* did someone just say who they are? matches names loosely ("Mahomet" = Mohamed) */
+function pcSkel(w) { return pcSound(w).replace(/[aeiou]/g, '').replace(/t/g, 'd'); }
+function pcNameSaid(txt) {
+  var t = String(txt || '').slice(-60), low = t.toLowerCase(), words = low.split(/[\s,.!?]+/).filter(Boolean), best = -1, i;
+  if (words.length > 6) return -1; /* only short answers like "I'm Mohamed", "this is Emy", "Yaseen" */
+  for (i = 0; i < 6; i++) { var n = pName(i); if (!n) continue; var ar = (typeof nameAr === 'function' && i < 4) ? nameAr(i) : '';
+    if (ar && t.indexOf(ar) >= 0) return i;
+    for (var k = 0; k < words.length; k++) { if (pcKey(words[k]) === pcKey(n) || (pcSkel(n).length >= 3 && pcNear(pcSkel(words[k]), pcSkel(n)))) best = i; } }
+  return best;
 }
 
 /* ---- Cartoon skin (from v2), kept in its own scope ---- */
