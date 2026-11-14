@@ -269,7 +269,7 @@ body:not(.livefit) #verlbl{display:none}
       <div class="group"><h2>Scores and favors</h2>
       <div class="crown">
         <span class="medal" aria-hidden="true"><svg width="56" height="46" viewBox="0 0 56 46"><path d="M5 40 L5 12 L18 26 L28 6 L38 26 L51 12 L51 40 Z" fill="#1F3F8F" stroke="#1F3F8F" stroke-width="5" stroke-linejoin="round"/></svg></span>
-        <div><span class="muted">El Basha today</span><strong id="basha"></strong><span class="muted" id="bashasub"></span></div>
+        <div><span class="muted">El Basha (top score)</span><strong id="basha"></strong><span class="muted" id="bashasub"></span></div>
       </div>
       <div id="kids" class="group" style="gap:16px"></div>
       <div class="group">
@@ -281,7 +281,7 @@ body:not(.livefit) #verlbl{display:none}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.40</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.41</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
         <button class="stone" id="plfset" type="button">Use Face ID</button><p class="muted" id="plfmsg"></p>
       </div>
@@ -350,7 +350,7 @@ body:not(.livefit) #verlbl{display:none}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.40">v6.40</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.41">v6.41</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -390,7 +390,7 @@ function drawTurns() {
     var b = document.createElement('button'); b.type = 'button'; b.className = 'turn';
     b.style.setProperty('--kc', 'var(--k' + i + ')'); b.setAttribute('aria-pressed', i === S.turn ? 'true' : 'false');
     var nm = document.createElement('span'); nm.textContent = n;
-    var sm = document.createElement('small'); sm.textContent = S.dpts[i] + ' today';
+    var sm = document.createElement('small'); sm.textContent = S.pts[i] + ' points';
     b.appendChild(nm); b.appendChild(sm);
     b.addEventListener('click', function () { S.turn = i; save(); drawTurns(); say(S.names[i] + ', your turn, ya basha.'); face('sideeye'); });
     box.appendChild(b);
@@ -403,9 +403,9 @@ function drawPhrase() {
 }
 function next() { S.idx = (S.idx + 1) % D.phr.length; drawPhrase(); }
 function drawFav() {
-  var top = 0; for (var i = 1; i < 4; i++) if (S.dpts[i] > S.dpts[top]) top = i;
-  if (S.dpts[top] > 0) { $('basha').textContent = S.names[top]; $('bashasub').textContent = 'Most Arabic today. Tut is almost impressed.'; }
-  else { $('basha').textContent = 'Nobody yet'; $('bashasub').textContent = 'First one to speak Arabic today takes the title.'; }
+  var top = 0; for (var i = 1; i < 4; i++) if (S.pts[i] > S.pts[top]) top = i;
+  if (S.pts[top] > 0) { $('basha').textContent = S.names[top]; $('bashasub').textContent = 'Most points so far. Tut is almost impressed.'; }
+  else { $('basha').textContent = 'Nobody yet'; $('bashasub').textContent = 'First one to score takes the title.'; }
   var box = $('kids'); box.innerHTML = '';
   S.names.forEach(function (n, i) {
     if (!n) return;
@@ -413,7 +413,7 @@ function drawFav() {
     var coin = document.createElement('span'); coin.className = 'coin'; coin.style.setProperty('--kc', 'var(--k' + i + ')'); coin.textContent = S.pts[i];
     var r = document.createElement('div');
     var a = document.createElement('strong'); a.textContent = n;
-    var b = document.createElement('span'); b.className = 'muted'; b.textContent = S.pts[i] + ' points, ' + S.dpts[i] + ' today';
+    var b = document.createElement('span'); b.className = 'muted'; b.textContent = S.pts[i] + ' points';
     r.style.flex = '1'; r.appendChild(a); r.appendChild(b); c.appendChild(coin); c.appendChild(r);
     var pl = document.createElement('button'); pl.type = 'button'; pl.className = 'plus'; pl.textContent = '+10'; pl.setAttribute('aria-label', 'Add 10 points for ' + n);
     pl.addEventListener('click', function () { S.pts[i] += 10; S.dpts[i] += 10; save(); drawFav(); });
@@ -532,9 +532,9 @@ function drawLive() {
   S.names.forEach(function (n, i) {
     if (!n) return;
     var b = document.createElement('button'); b.type = 'button'; b.className = 'turn';
-    b.style.setProperty('--kc', 'var(--k' + i + ')'); b.setAttribute('aria-label', n + ', ' + S.dpts[i] + ' points today. Tap to tell Tut it is you talking.'); b.setAttribute('aria-pressed', L.who === i ? 'true' : 'false');
+    b.style.setProperty('--kc', 'var(--k' + i + ')'); b.setAttribute('aria-label', n + ', ' + S.pts[i] + ' points. Tap to tell Tut it is you talking.'); b.setAttribute('aria-pressed', L.who === i ? 'true' : 'false');
     var nm = document.createElement('span'); nm.textContent = n;
-    var sm = document.createElement('small'); sm.textContent = S.dpts[i] + ' today';
+    var sm = document.createElement('small'); sm.textContent = S.pts[i] + (S.pts[i] === 1 ? ' point' : ' points');
     b.appendChild(nm); b.appendChild(sm);
     b.addEventListener('click', function () { iAm(i); });
     box.appendChild(b);
@@ -611,7 +611,7 @@ function findKid(name) {
   return hit;
 }
 function livePrompt() {
-  var kids = active().map(function (i) { var ar = (typeof nameAr === 'function') ? nameAr(i) : ''; return S.names[i] + (ar ? ' (say it the Egyptian way: ' + ar + ')' : '') + ' (' + S.dpts[i] + ' points today)'; }).join(', ');
+  var kids = active().map(function (i) { var ar = (typeof nameAr === 'function') ? nameAr(i) : ''; return S.names[i] + (ar ? ' (say it the Egyptian way: ' + ar + ')' : '') + ' (' + S.pts[i] + ' points in total)'; }).join(', ');
   var mem = S.mem.length ? S.mem.map(function (m) { return '- [' + m.d + (m.k ? ', ' + m.k : '') + '] ' + m.n; }).join('\n') : '- (nothing yet; this is the first hangout you remember)';
   var lv = S.teach == null ? 3 : S.teach;
   var LV = ['0/10: only use Masri when it comes up naturally; do not go out of your way to teach.',
@@ -791,7 +791,7 @@ function setupMsg(stage) {
     m.realtimeInputConfig = { automaticActivityDetection: { startOfSpeechSensitivity: 'START_SENSITIVITY_LOW', endOfSpeechSensitivity: 'END_SENSITIVITY_HIGH', prefixPaddingMs: 200, silenceDurationMs: 600 }, activityHandling: 'NO_INTERRUPTION' }; }
   if (stage < 4) { m.outputAudioTranscription = {}; m.inputAudioTranscription = {}; }
   if (stage < 3) m.tools = [{ functionDeclarations: [
-    { name: 'award_points', description: 'Give points to one child who just used Egyptian Arabic in the conversation. Returns every child\'s points for today.',
+    { name: 'award_points', description: 'Give points to one child who just used Egyptian Arabic in the conversation. Returns every child\'s total points.',
       parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'The child\'s name exactly as listed' }, points: { type: 'INTEGER', description: '1 for saying back a word you just gave them, 5 for remembering a word on their own' } }, required: ['child', 'points'] } },
     { name: 'record_word', description: 'Keep the record of which Masri words each kid knows. Call it every time a kid is taught a word, gets a word right, or gets it wrong (in practice and in normal chat).',
       parameters: { type: 'OBJECT', properties: { child: { type: 'STRING' }, say_it: { type: 'STRING', description: 'English-letters pronunciation, e.g. gā\'ān' }, arabic: { type: 'STRING' }, meaning: { type: 'STRING' }, result: { type: 'STRING', description: 'taught, repeated (said it back after you), recalled (remembered it on their own), or wrong' } }, required: ['child', 'say_it', 'meaning', 'result'] } },
@@ -806,7 +806,7 @@ function setupMsg(stage) {
     { name: 'save_instruction', description: 'In instructions mode only: save one refined standing instruction from the parent.',
       parameters: { type: 'OBJECT', properties: { instruction: { type: 'STRING', description: 'One clear, specific, self-contained instruction in the second person, e.g. "Use more food words this week."' } }, required: ['instruction'] } },
     { name: 'remove_instruction', description: 'In instructions mode only: delete saved instructions that contain a word or phrase.', parameters: { type: 'OBJECT', properties: { about: { type: 'STRING' } }, required: ['about'] } },
-    { name: 'change_points', description: 'In instructions mode only, when the parent asks: add to, take from, or set a kid\'s points for today.',
+    { name: 'change_points', description: 'In instructions mode only, when the parent asks: add to, take from, or set a kid\'s total points.',
       parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'A kid\'s name, or "all" for every kid' }, amount: { type: 'INTEGER', description: 'Points to add (negative to take away), or the new value when how is set' }, how: { type: 'STRING', enum: ['add', 'set'] } }, required: ['child', 'amount', 'how'] } },
     { name: 'list_memory', description: 'Instructions mode only: get everything you currently remember, grouped by kid, to tell the parent.', parameters: { type: 'OBJECT', properties: {} } },
     { name: 'set_teaching_level', description: 'Instructions mode only: set how much Arabic you teach, 0 to 10, when the parent asks.', parameters: { type: 'OBJECT', properties: { level: { type: 'INTEGER' } }, required: ['level'] } },
@@ -817,14 +817,14 @@ function setupMsg(stage) {
   if (stage < 1 && m.tools) m.tools.push({ googleSearch: {} }); /* live web search: weather, news, facts */
   return m;
 }
-function scores() { var o = {}; active().forEach(function (i) { o[S.names[i]] = S.dpts[i]; }); return o; }
+function scores() { var o = {}; active().forEach(function (i) { o[S.names[i]] = S.pts[i]; }); return o; }
 function runTool(c) { var _r = runTool0(c); try { tlog('tool', c.name + ' ' + JSON.stringify(c.args || {}).slice(0, 160) + (_r && _r.error ? ' -> ERROR ' + _r.error : '')); if (_r && _r.error && !/Only in instructions mode|Refused/.test(_r.error)) tprob('Tool ' + c.name + ' failed: ' + _r.error); } catch (e) {} return _r; }
 function runTool0(c) {
   var a = c.args || {};
   if (c.name === 'award_points') {
     var i = findKid(a.child); if (i < 0) return { error: 'No child called ' + a.child + '. The children are: ' + active().map(function (x) { return S.names[x]; }).join(', ') };
     var pts = Number(a.points) >= 5 ? 5 : 1; award(i, pts); try { if (PR.on) PC.awarded = true; } catch (e) {}
-    return { result: 'ok', gave: pts, to: S.names[i], points_today: scores(), say_now: 'Announce it out loud right now: ' + S.names[i] + ' +' + pts + ' (POINTS style, fresh wording).' };
+    return { result: 'ok', gave: pts, to: S.names[i], points_total: scores(), say_now: 'Announce it out loud right now: ' + S.names[i] + ' +' + pts + ' (POINTS style, fresh wording).' };
   }
   if (c.name === 'end_practice') { if (Date.now() - PR.t < 45000) return { result: 'ignored', note: 'Practice just started. Keep going with the rounds; only call end_practice after you have wrapped up.' }; try { practiceStop(true); } catch (e) {} return { result: 'ok' }; }
   if (c.name === 'record_word') {
@@ -858,9 +858,9 @@ function runTool0(c) {
     var amt = Math.round(Number(a.amount)); if (!isFinite(amt)) return { error: 'Give a number' };
     var who = String(a.child || '').trim().toLowerCase(), ids = (who === 'all' || who === 'everyone') ? active() : [findKid(a.child)];
     if (ids[0] === undefined || ids[0] < 0) return { error: 'No child called ' + a.child + '. The children are: ' + active().map(function (x) { return S.names[x]; }).join(', ') };
-    var ch = []; ids.forEach(function (i) { var d = a.how === 'set' ? amt - S.dpts[i] : amt; d = Math.max(d, -S.dpts[i]); S.dpts[i] += d; S.pts[i] = Math.max(0, S.pts[i] + d); if (d) ch.push(S.names[i] + ' ' + (d > 0 ? '+' : '') + d); });
+    var ch = []; ids.forEach(function (i) { var d = a.how === 'set' ? amt - S.pts[i] : amt; d = Math.max(d, -S.pts[i]); S.dpts[i] += d; S.pts[i] = Math.max(0, S.pts[i] + d); if (d) ch.push(S.names[i] + ' ' + (d > 0 ? '+' : '') + d); });
     save(); drawLive(); drawTurns(); $('lheard').textContent = 'Points changed by ' + pName(V.last.i) + '.';
-    return { result: 'ok', changed: ch, points_today: scores(), say_now: ch.length ? 'Announce out loud now, to the kids, each change by name and number (POINTS style): ' + ch.join(', ') : 'No change.' };
+    return { result: 'ok', changed: ch, points_total: scores(), say_now: ch.length ? 'Announce out loud now, to the kids, each change by name and number (POINTS style): ' + ch.join(', ') : 'No change.' };
   }
   if (c.name === 'save_instruction' || c.name === 'remove_instruction') {
     if (!L.inst) return { error: 'Refused. Not in instructions mode.' };
