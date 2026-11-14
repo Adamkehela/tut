@@ -182,6 +182,8 @@ body.skin-cartoon .stage .sun{display:block!important;position:absolute;left:50%
 #pfab.act{opacity:1;transition:opacity .1s}
 #pfab:focus-visible{opacity:1;outline:3px solid #fff}
 #pfab.dragging{transition:none}
+#verlbl{position:fixed;left:10px;bottom:calc(4px + env(safe-area-inset-bottom));z-index:40;font-size:12px;font-weight:700;color:rgba(255,240,210,.55);pointer-events:none;letter-spacing:.5px}
+body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
 </style>
 </head>
 <body>
@@ -269,7 +271,7 @@ body.skin-cartoon .stage .sun{display:block!important;position:absolute;left:50%
     </div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <h2>Parents PIN</h2>
+        <p class="muted">App version v6.24</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -332,7 +334,7 @@ body.skin-cartoon .stage .sun{display:block!important;position:absolute;left:50%
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.24">v6.24</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
