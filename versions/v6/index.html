@@ -186,6 +186,7 @@ body.skin-cartoon .stage .sun{display:block!important;position:absolute;left:50%
 #vrecard .vrhow{margin:0 0 8px;font-weight:800;color:#FFD66B;font-size:16px}
 #vrecard .vrtext{margin:0 0 12px;font-size:24px;line-height:1.35;font-weight:700}
 #vrecard .vrwarn{margin:0 0 10px;padding:8px 12px;border-radius:12px;background:#B3261E;color:#fff;font-weight:800;font-size:17px}
+.vfail{display:block;margin-top:4px;color:#B3261E;font-weight:700}
 #vrecard .vrbar{height:10px;border-radius:5px;background:rgba(255,255,255,.2);overflow:hidden}
 #vrecard .vrbar div{height:100%;background:#FFD66B;transition:width 1s linear}
 #verlbl{position:fixed;left:10px;bottom:calc(4px + env(safe-area-inset-bottom));z-index:40;font-size:12px;font-weight:700;color:rgba(255,240,210,.55);pointer-events:none;letter-spacing:.5px}
@@ -279,7 +280,7 @@ body:not(.livefit) #verlbl{display:none}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.36</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.37</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -347,7 +348,7 @@ body:not(.livefit) #verlbl{display:none}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.36">v6.36</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.37">v6.37</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -1160,7 +1161,7 @@ async function vEnroll(i, x, add) {
   for (k = 0; k + 48000 <= v.length; k += 24000) { e = await vEmbed(vNoise(v.subarray(k, k + 48000), 15)); if (e) embs.push(e); }
   if (embs.length < 6) return { ok: false, why: 'Not enough talking. Try again.' };
   var sum = new Float32Array(VD), self = 0, c = 0; for (k = 0; k < embs.length; k++) { for (j = 0; j < VD; j++) sum[j] += embs[k][j]; for (j = k + 1; j < embs.length; j += 3) { self += vCos(embs[k], embs[j]); c++; } }
-  self /= c; if (self < 0.3) return { ok: false, why: 'That recording was too noisy or had more than one person in it. Try again in a quiet room, one person only.' };
+  self /= c; if (self < 0.12) return { ok: false, why: 'That recording was mostly noise, or several people talked at once. Try again with only ' + pName(i) + ' talking.' };
   var old = add ? vxDec((S.vx || [])[i]) : [], all = old.concat(embs); while (all.length > 120) all.shift();
   S.vx = S.vx || [null, null, null, null, null, null]; S.vl = S.vl || [null, null, null, null, null, null];
   var cs = new Float32Array(VD); all.forEach(function (q) { for (j = 0; j < VD; j++) cs[j] += q[j]; }); var print = vNorm(cs);
@@ -1268,7 +1269,7 @@ async function vRecord(i, btn, msg, add) {
   $('vrecard').hidden = true;
   var n = 0, k = 0; chunks.forEach(function (c) { n += c.length; }); var x = new Float32Array(n); chunks.forEach(function (c) { x.set(c, k); k += c.length; });
   btn.textContent = 'Working...'; msg.textContent = 'Learning the voice...';
-  try { var r = await vEnroll(i, x, add); if (r.ok) { vAudioSave(i, x, add); S.voiceReset = false; S.vrec = S.vrec || []; S.vrec[i] = add ? (S.vrec[i] || 3) + 1 : 3; save(); }
+  try { var r = await vEnroll(i, x, add); S.vfail = S.vfail || []; S.vfail[i] = r.ok ? null : r.why; save(); if (r.ok) { vAudioSave(i, x, add); S.voiceReset = false; S.vrec = S.vrec || []; S.vrec[i] = add ? (S.vrec[i] || 3) + 1 : 3; save(); }
     msg.textContent = r.ok ? ((add ? 'Added to ' : 'Saved ') + pName(i) + '\'s voice (' + r.n + ' samples). Next: run the voice test for ' + pName(i) + '.' + (r.close ? ' It sounds a lot like ' + r.close + ', so expect some mix-ups between them.' : '')) : r.why; }
   catch (e) { msg.textContent = 'Could not learn the voice: ' + (e.message || e); }
   V.rec = null; btn.disabled = false; drawVoices(); try { drawVTest(); } catch (e) {}
@@ -1282,6 +1283,7 @@ function drawVoices() {
     var b = document.createElement('button'); b.type = 'button'; b.textContent = vpGet(i) ? 'Redo' : 'Record'; b.setAttribute('aria-label', (vpGet(i) ? 'Record again the voice of ' : 'Record the voice of ') + n);
     b.addEventListener('click', function () { vRecord(i, b, $('voicemsg')); });
     if (vpGet(i) && (S.vrec || [])[i] >= 3) t.textContent += ' \u2713';
+    if ((S.vfail || [])[i]) { var fe = document.createElement('span'); fe.className = 'vfail'; fe.textContent = ' \u26A0 Last recording did not save: ' + S.vfail[i]; t.appendChild(fe); }
     r.appendChild(t); r.appendChild(b);
     if (vpGet(i)) { var am = document.createElement('button'); am.type = 'button'; am.textContent = 'Add more'; am.setAttribute('aria-label', 'Record more of the voice of ' + n);
       am.addEventListener('click', function () { vRecord(i, am, $('voicemsg'), true); }); r.appendChild(am); }

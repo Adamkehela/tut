@@ -103,6 +103,6 @@
    "Clear 'No voice heard' warnings: live in the recording box after 3 s of silence, at the end of a recording, in the voice test, and on the Tut screen if the microphone gives no sound for 8 s"
   ],
   "note": "Needs a Google Gemini key in Parents.",
-  "minor": 36
+  "minor": 37
  }
 ]
