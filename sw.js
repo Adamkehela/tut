@@ -1,4 +1,4 @@
-var BIG='tut-big-v1', PAGE='tut-page-98a134e9';
+var BIG='tut-big-'+'vm37be6404vwab1a9d2f', PAGE='tut-page-89ee745f';
 self.addEventListener('install',function(e){self.skipWaiting();});
 self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k!==BIG&&k!==PAGE;}).map(function(k){return caches.delete(k);}));}).then(function(){return self.clients.claim();}));});
 self.addEventListener('fetch',function(e){
