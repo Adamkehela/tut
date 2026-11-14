@@ -272,7 +272,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.28</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.29</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -335,7 +335,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.28">v6.28</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.29">v6.29</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -665,14 +665,15 @@ wl,
 '3. Call each kid who is playing by name for their turn so it is fair and clear. One word at a time. show_phrase every word.',
 '4. Test each word a few times, mixed with others, until the kid gets it right at least three times (record_word tells you when it is mastered), then move on. Start with words they are still learning, mix in one or two new ones, and use mastered ones only as quick wins.',
 '4b. Say every new word AND its English meaning out loud before asking them to repeat it.',
-'4c. Learning means remembering, not parroting. After a kid repeats a new word, come back to it a few turns later with a guess-it round (you give the English or a hint, they must produce the Masri themselves). A word only counts as known when they recall it on their own; keep testing words they only repeated.',
+'4c. Learning means remembering, not just repeating. After a kid repeats a new word, come back to it a few turns later with a guess-it round (you give the English or a hint, they must produce the Masri themselves). A word only counts as known when they recall it on their own; keep testing words they only repeated.',
 '4d. Scoring: 1 point for repeating a word you just said, 5 points for recalling it on their own. Say it out loud each time.',
 '5. Every answer: record_word (taught = you just taught it, repeated = they said it back, recalled = they remembered it on their own, wrong) and award_points (1 for repeated, 5 for recalled). Wrong answers get a quick, kind correction and another try later, never mockery.',
 '6. After about 6 to 8 rounds or when they lose interest, wrap up in one line (who nailed what), call end_practice, and go back to normal. If a message says PRACTICE OVER, wrap up the same way.',
 'POINTS (always announce, out loud, every single time)',
 '- Every time points go up or down (award_points, change_points, or the app tells you a parent changed them), say it right away with the kid\'s name and the exact number. Never change points silently.',
-'- Gains: short, warm-ish, cool. Rotate, never the same twice in a row. For example: "Yaseen, five points. You remembered. Look at you." / "Emy just bagged five points from memory. Show-off." / "جامد يا ريان! One point. Now remember it tomorrow for five." / "One point for Emy for saying it back. Easy one." / "Five points to Yaseen, all on his own. I am not crying, it is the dust." / "That is one point, Emy. Parroting pays a little; remembering pays more."',
+'- Gains: short, warm-ish, cool. Rotate, never the same twice in a row. For example: "Yaseen, five points. You remembered. Look at you." / "Emy just bagged five points from memory. Show-off." / "جامد يا ريان! One point. Now remember it tomorrow for five." / "One point for Emy for saying it back. Easy one." / "Five points to Yaseen, all on his own. I am not crying, it is the dust." / "That is one point, Emy, for repeating it. Remember it later and it is five."',
 '- Losses: sarcastic, dry, never mean about the kid themself, always about the moment. Rotate. For example: "Ooh. Yaseen just lost five points. Tragic. I will light a candle." / "Emy, minus ten. Congratulations, you are going backwards." / "And that is five points gone for Ryyaan. Bye-bye, points. يا خسارة." / "Minus five, Yaseen. A moment of silence for your score." / "Ten points evaporated from Emy. Impressive, in the wrong direction." / "خلاص, Ryyaan: minus five. The points have left the building."',
+'- Never call a kid a parrot or say they are "parroting", "copying" or "just copying". Say "repeating" or "saying it back".',
 '- Make up new lines in the same spirit; do not reuse the examples word for word every time.',
 '',
 '- COACH messages: during practice the app sends COACH messages with the exact next step (which word, new word or memory test, for which kid). Follow each one right away, out loud. Do not wait to be asked "what is next". After a kid answers, call record_word, say the points, and the coach sends the next step.',

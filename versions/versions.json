@@ -97,6 +97,6 @@
    "Pauses fixed: practice no longer stalls after each word (spelling mismatch bug), quiet background noise is filtered, noise can't cut Tut off mid-sentence, Tut ignores stray sounds, quicker nudge (7 s)"
   ],
   "note": "Needs a Google Gemini key in Parents.",
-  "minor": 28
+  "minor": 29
  }
 ]
