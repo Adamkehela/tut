@@ -272,7 +272,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.31</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.32</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -335,7 +335,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.31">v6.31</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.32">v6.32</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -806,7 +806,7 @@ function runTool0(c) {
   var a = c.args || {};
   if (c.name === 'award_points') {
     var i = findKid(a.child); if (i < 0) return { error: 'No child called ' + a.child + '. The children are: ' + active().map(function (x) { return S.names[x]; }).join(', ') };
-    var pts = Number(a.points) >= 5 ? 5 : 1; award(i, pts);
+    var pts = Number(a.points) >= 5 ? 5 : 1; award(i, pts); try { if (PR.on) PC.awarded = true; } catch (e) {}
     return { result: 'ok', gave: pts, to: S.names[i], points_today: scores(), say_now: 'Announce it out loud right now: ' + S.names[i] + ' +' + pts + ' (POINTS style, fresh wording).' };
   }
   if (c.name === 'end_practice') { if (Date.now() - PR.t < 45000) return { result: 'ignored', note: 'Practice just started. Keep going with the rounds; only call end_practice after you have wrapped up.' }; try { practiceStop(true); } catch (e) {} return { result: 'ok' }; }
@@ -887,7 +887,8 @@ function liveMsg(m) {
     L.ready = true; L.qTries = 0; startMic();
     if (L.resumed) { L.resumed = false; lStatus('Tut is listening. Just talk.'); return; } /* reconnected: carry on quietly */
     lStatus('Tut is waking up...');
-    if (L.practiceNext) { L.practiceNext = false; setTimeout(function () { try { PR.on = false; practiceStart(); } catch (e) {} }, 2500); }
+    if (L.practiceNext) { L.practiceNext = false; L.skipOpen = true; setTimeout(function () { try { PR.on = false; practiceStart(); } catch (e) {} }, 300); }
+    if (L.skipOpen) { L.skipOpen = false; return; }
     var OPEN = ['Someone just tapped your face to call you over. Say one short, cool, low-key line, as if you just looked up from something. No greeting speech.',
       'You were busy with your own thoughts and the kids just called you. Acknowledge them in a few dry words, like a cool older cousin. Do not mention sleeping or waking.',
       'Say one short, deadpan line to whoever called you, referring to something from your memory of them if there is something good; otherwise something about right now. Do not mention being old or asleep.',
@@ -1609,6 +1610,17 @@ var PWORDS = [['جعان','ga\'ān','hungry'],['عطشان','\'aṭshān','thirs
   ['أخويا','akhūya','my brother'],['أختي','ukhti','my sister'],['صاحبي','ṣāḥbi','my friend']];
 var PC = { q: [], cur: null, kid: '', tries: 0, nudges: 0, waitNext: false, meantOk: false, lastAct: 0, timer: null };
 function pcKey(w) { return String(w).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z]/g, '').replace(/(.)\1+/g, '$1'); }
+function pcSound(w) { return pcKey(w).replace(/c/g, 'k').replace(/q/g, 'k').replace(/ou/g, 'u').replace(/ee/g, 'i').replace(/ph/g, 'f').replace(/w/g, 'u').replace(/y/g, 'i'); }
+function pcNear(a, b) { if (!a || !b) return false; if (a === b) return true; if (Math.abs(a.length - b.length) > 1 || b.length < 4) return false;
+  var d = [], i, k; for (i = 0; i <= a.length; i++) { d[i] = [i]; } for (k = 0; k <= b.length; k++) d[0][k] = k;
+  for (i = 1; i <= a.length; i++) for (k = 1; k <= b.length; k++) d[i][k] = Math.min(d[i - 1][k] + 1, d[i][k - 1] + 1, d[i - 1][k - 1] + (a[i - 1] === b[k - 1] ? 0 : 1));
+  return d[a.length][b.length] <= 1; }
+function pcSaid(txt, s) { /* did the player say the word? Arabic letters, or English letters within one sound */
+  if (!s) return false; var t = String(txt || ''), ar = (s.ar || '').replace(/[\u064B-\u0652]/g, '');
+  if (ar && t.replace(/[\u064B-\u0652]/g, '').indexOf(ar) >= 0) return true;
+  var target = pcSound(s.tr), words = t.split(/[\s,.!?]+/).map(pcSound).filter(Boolean), i; if (words.length > 5) words = words.slice(-3);
+  for (i = 0; i < words.length; i++) { if (pcNear(words[i], target)) return true; if (i + 1 < words.length && pcNear(words[i] + words[i + 1], target)) return true; }
+  return false; }
 function pcSame(word, s) { return !!s && (pcKey(word) === pcKey(s.tr) || (word && s.ar && String(word).replace(/[\u064B-\u0652]/g, '') === s.ar.replace(/[\u064B-\u0652]/g, ''))); }
 function pcBuild() {
   var k = -1; active().forEach(function (i) { if (S.names[i] && pcKey(S.names[i]) === pcKey(PC.kid)) k = i; });
@@ -1629,6 +1641,11 @@ function pcStepText(s) {
 function pcSend(t) { PC.sentT = Date.now(); try { tlog('coach', t); } catch (e) {} if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'COACH (practice step, follow it now): ' + t } })); PC.lastAct = Date.now(); }
 function pcNext(prefix) {
   if (!PR.on) return;
+  if (PC.got && PC.got.who >= 0 && PC.got.who < 4 && !PC.awarded) { /* Tut forgot the points: the app gives them and Tut announces */
+    var g = PC.got, pts = g.step.type === 'recall' ? 5 : 1; award(g.who, pts);
+    try { runTool({ name: 'record_word', args: { child: S.names[g.who], say_it: g.step.tr, arabic: g.step.ar, meaning: g.step.en, result: g.step.type === 'recall' ? 'recalled' : 'repeated' } }); } catch (e) {}
+    prefix = 'The app gave ' + S.names[g.who] + ' ' + pts + (pts > 1 ? ' points' : ' point') + ' for that, so announce it out loud first (POINTS style). Then: ' + (prefix || ''); }
+  PC.got = null; PC.awarded = false;
   PC.cur = PC.q.shift(); PC.tries = 0; PC.nudges = 0; PC.meantOk = false; PC.waitNext = false;
   if (!PC.cur) { pcSend((prefix || '') + 'That was the last word. Wrap up in one line: who remembered what, with points said out loud. Then call end_practice.'); return; }
   pcSend((prefix || '') + pcStepText(PC.cur));
@@ -1656,12 +1673,16 @@ function coachHeard(txt) {
   if (PC.waitWho && L.who >= 0 && String(txt).trim().length > 2) { /* first person to answer is the one practising */
     PC.waitWho = false; PC.kid = pName(L.who); pcBuild(); pcNext((L.who >= 4 ? PC.kid + ' (a parent) is practising: same game, no points or records. ' : PC.kid + ' is practising. ')); return; }
   if (PC.waitWho) return;
+  if (PC.cur && !PC.waitNext && pcSaid(String(txt).slice(-60), PC.cur)) { /* they said it: count it and move on after Tut's reply */
+    PC.heardOk = (PC.heardOk || 0) + 1; PC.waitNext = true; PC.got = { who: L.who, step: PC.cur };
+    if (PC.cur.type === 'new') PC.q.splice(Math.min(PC.q.length, 2), 0, { type: 'recall', ar: PC.cur.ar, tr: PC.cur.tr, en: PC.cur.en });
+    try { tlog('note', 'Coach heard the answer "' + PC.cur.tr + '"'); } catch (e) {} return; }
   if (/what'?s next|what is next|next one|next word|another one|and now|what now|ok next|next please/i.test(String(txt).slice(-60))) { tprob('Practice stalled: kid had to ask for the next word'); L.heard = ''; pcNext('The kid asked for the next one, so go straight on. '); }
 }
 /* Tut recorded an answer */
 function coachRecord(child, word, result) {
   if (!PR.on) return; if (!PC.kid && child) { PC.kid = child; }
-  if (!PC.cur || !(pcSame(word, PC.cur) || pcSame(PC.lastAr, PC.cur))) return;
+  if (!PC.cur || PC.waitNext || !(pcSame(word, PC.cur) || pcSame(PC.lastAr, PC.cur))) return;
   if (result === 'taught') return;
   if (result === 'wrong' && ++PC.tries < 2) return;
   if (PC.cur.type === 'new') PC.q.splice(Math.min(PC.q.length, 2), 0, { type: 'recall', ar: PC.cur.ar, tr: PC.cur.tr, en: PC.cur.en });
