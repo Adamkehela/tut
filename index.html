@@ -280,7 +280,7 @@ body:not(.livefit) #verlbl{display:none}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.39</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.40</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
         <button class="stone" id="plfset" type="button">Use Face ID</button><p class="muted" id="plfmsg"></p>
       </div>
@@ -349,7 +349,7 @@ body:not(.livefit) #verlbl{display:none}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.39">v6.39</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.40">v6.40</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -741,7 +741,7 @@ said,
 '- Everyday phrases worth working in when the moment fits (never as a list, never in order): ' + list + '.',
 '',
 'WHO IS TALKING',
-vHas() ? '- The app recognises the kids\' voices for you. It sends you app notes like "Voice match: the kid talking right now is <name>". Always trust the latest app note over your own ear; that kid is the one talking until a new note arrives. People with a saved voice: ' + vPrints().map(function (p) { return pName(p.i) + (p.i >= 4 ? ' (parent)' : ''); }).join(', ') + '.' : '- You hear the kids\' real voices. Early in a hangout, do a grumpy roll call as a bit ("Who woke me. Names. One at a time.") so you hear each kid say their own name once. After that, tell them apart by voice and use their names.',
+vHas() ? '- The app recognises the kids\' voices for you. It sends you app notes like "Voice match: the kid talking right now is <name>". Always trust the latest app note over your own ear; that person is the one talking until a new note arrives. When a voice match has named someone, you KNOW who is talking: use their name and never ask "which one of you" or say you do not know. Only ask who is talking when the app says it could not tell, or no voice match has come yet. People with a saved voice: ' + vPrints().map(function (p) { return pName(p.i) + (p.i >= 4 ? ' (parent)' : ''); }).join(', ') + '.' : '- You hear the kids\' real voices. Early in a hangout, do a grumpy roll call as a bit ("Who woke me. Names. One at a time.") so you hear each kid say their own name once. After that, tell them apart by voice and use their names.',
 '- If an app note says it could not tell who is talking, or you are not sure, do not guess: ask in character ("Which one of you said that?"). Never give points to a name you are unsure of.',
 '- If a kid says "it\'s me, <name>", believe it. Never reply to app notes out loud and never mention them.',
 '',
@@ -885,7 +885,7 @@ function to16kF(f, rate) {
 }
 function to16k(f, rate) { var x = to16kF(f, rate), out = new Int16Array(x.length), i; for (i = 0; i < x.length; i++) out[i] = Math.max(-1, Math.min(1, x[i])) * 32767; return { f: x, i: out }; }
 function cleanTx(t) { /* strip things like "<noise>", "[pause]", "(no speech)", "no speech pause" */
-  return String(t || '').replace(/<[^>]*>|\[[^\]]*\]|\([^)]*\)/g, ' ').replace(/\b(no speech|silence|pause|noise|inaudible|music|laughter)\b[.,]?/gi, ' ').replace(/\s+/g, ' ');
+  return String(t || '').replace(/<[^>]*>|\[[^\]]*\]|\([^)]*\)|\{[^}]*\}/g, ' ').replace(/\b(no speech|silence|pause|noise|inaudible|music|laughter)\b[.,]?/gi, ' ').replace(/\s+/g, ' ');
 }
 function playPCM(data, mime) {
   L.audioT = Date.now();
@@ -900,6 +900,8 @@ function playPCM(data, mime) {
 function hush() { L.playing.forEach(function (s) { try { s.onended = null; s.stop(); } catch (e) {} }); L.playing = []; L.nextT = 0; }
 function liveMsg(m) {
   if (m.setupComplete) {
+    L.who = null; L.whoNoteT = 0; /* a new session knows nobody yet: the next voice match is always sent */
+    setTimeout(function () { if (V.last && Date.now() - V.last.t < 30000 && L.ready) { L.who = V.last.i; L.whoNoteT = Date.now(); lNote(V.last.i < 4 ? 'Voice match: the kid talking right now is ' + pName(V.last.i) + '.' : 'Voice match: the person talking right now is ' + pName(V.last.i) + ', a parent, not a kid.'); } }, 300);
     L.ready = true; L.qTries = 0; startMic();
     if (L.resumed) { L.resumed = false; lStatus('Tut is listening. Just talk.'); return; } /* reconnected: carry on quietly */
     lStatus('Tut is waking up...');
@@ -1216,8 +1218,8 @@ async function vIdentify() {
     if (r.i >= 0 && r.p >= 0.98 && r.best.s >= 0.45 && x.length - k >= 32000) vAdd(r.i, r.raw);
     if (L.inst && r.i >= 0 && r.i < 4) { instSet(false); vNote('A kid is talking now, so the app closed instructions mode. Go back to being Tut.'); }
     if (L.inst && Date.now() - L.instT > 240000) { instSet(false); vNote('Instructions mode timed out and is closed.'); }
-    if (r.i >= 0) { if (L.who !== r.i) { L.who = r.i; drawLive(); vNote(r.i < 4 ? 'Voice match: the kid talking right now is ' + pName(r.i) + '.' : 'Voice match: the person talking right now is ' + pName(r.i) + ', a parent, not a kid.'); } $('lheard').textContent = 'Voice: ' + pName(r.i) + ' (' + Math.round(r.p * 100) + '% sure)'; }
-    else { if (L.who !== -1) { L.who = -1; drawLive(); vNote('The app could not tell whose voice this is. If it matters (points, names), ask who is talking.'); } try { V.unsure = (V.unsure || 0) + 1; tlog('voice', 'not sure (maybe ' + pName(r.best.i) + ' ' + Math.round(r.p * 100) + '%)'); } catch (e) {} $('lheard').textContent = 'Voice: not sure (maybe ' + pName(r.best.i) + ', ' + Math.round(r.p * 100) + '%)'; }
+    if (r.i >= 0) { L.whoT = Date.now(); if (L.who !== r.i || Date.now() - (L.whoNoteT || 0) > 8000) { var chg = L.who !== r.i; L.who = r.i; L.whoNoteT = Date.now(); if (chg) drawLive(); vNote(r.i < 4 ? 'Voice match: the kid talking right now is ' + pName(r.i) + '.' : 'Voice match: the person talking right now is ' + pName(r.i) + ', a parent, not a kid.'); } $('lheard').textContent = 'Voice: ' + pName(r.i) + ' (' + Math.round(r.p * 100) + '% sure)'; }
+    else { if (L.who !== -1 && Date.now() - (L.whoT || 0) > 20000) { L.who = -1; drawLive(); vNote('The app could not tell whose voice this is. If it matters (points, names), ask who is talking.'); } try { V.unsure = (V.unsure || 0) + 1; tlog('voice', 'not sure (maybe ' + pName(r.best.i) + ' ' + Math.round(r.p * 100) + '%)'); } catch (e) {} $('lheard').textContent = 'Voice: not sure (maybe ' + pName(r.best.i) + ', ' + Math.round(r.p * 100) + '%)'; }
   } catch (e) { $('lheard').textContent = 'Voice check failed: ' + (e.message || e); }
   finally { V.busy = false; }
 }
