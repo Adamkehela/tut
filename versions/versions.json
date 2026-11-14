@@ -98,9 +98,10 @@
    "From session log 2: practice follows whoever actually answers (asks first if unsure; parents can play without points), Tut must never say his reasoning out loud (and it is hidden from the screen)",
    "From session log 3: coach hears the answer itself and moves on (no more stalls or repeating the same word), points always given (the app gives them if Tut forgets), slider wake goes straight into practice",
    "From session log 4: practice starts right away with the first word (no 'who is practising?' round), player's stated name beats the voice match, Tut says names the Egyptian way (Arabic-letter name field in Parents)",
-   "Stronger voice model (3D-Speaker CAM++, 200k speakers), decisions use the clip before too, guided 3 recordings per person, 5-sentence voice test in Parents (old voice recordings cleared once)"
+   "Stronger voice model (3D-Speaker CAM++, 200k speakers), decisions use the clip before too, guided 3 recordings per person, 5-sentence voice test in Parents (old voice recordings cleared once)",
+   "One-tap voice recording: read 3 short kid-friendly parts from the screen (normal, excited, quiet). Recordings are kept so voices survive updates and model changes; Save backup / Restore from backup moves everything (incl. voices) to another phone"
   ],
   "note": "Needs a Google Gemini key in Parents.",
-  "minor": 34
+  "minor": 35
  }
 ]

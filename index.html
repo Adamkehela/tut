@@ -181,6 +181,11 @@ body.skin-cartoon .stage .sun{display:block!important;position:absolute;left:50%
 #pfab.act{opacity:1;transition:opacity .1s}
 #pfab:focus-visible{opacity:1;outline:3px solid #fff}
 #pfab.dragging{transition:none}
+#vrecard{background:#1E2A5A;color:#FFF6DC;border-radius:22px;padding:16px 18px;margin:10px 0}
+#vrecard .vrhow{margin:0 0 8px;font-weight:800;color:#FFD66B;font-size:16px}
+#vrecard .vrtext{margin:0 0 12px;font-size:24px;line-height:1.35;font-weight:700}
+#vrecard .vrbar{height:10px;border-radius:5px;background:rgba(255,255,255,.2);overflow:hidden}
+#vrecard .vrbar div{height:100%;background:#FFD66B;transition:width 1s linear}
 #verlbl{position:fixed;left:10px;bottom:calc(4px + env(safe-area-inset-bottom));z-index:40;font-size:12px;font-weight:700;color:rgba(255,240,210,.55);pointer-events:none;letter-spacing:.5px}
 body:not(.livefit) #verlbl{display:none}
 </style>
@@ -268,10 +273,11 @@ body:not(.livefit) #verlbl{display:none}
         <div class="nile"><i id="fambar"></i></div>
       </div>
     </div>
+      <div class="group"><h2>Backup</h2><p class="muted">Saves everything in one file: names, scores, words learned, Tut's memory, rules, PIN, and the voice recordings. Keep it in Files, iCloud Drive or Google Drive. On a new phone, or if anything is lost, tap Restore. Voices are also kept safe between app updates.</p><label class="chk"><input type="checkbox" id="bkkey"> Include the Gemini key (keep the file private)</label><button class="stone" id="bksave" type="button">Save backup</button><button class="stone" id="bkload" type="button">Restore from backup</button><input type="file" id="bkfile" accept=".json,application/json" hidden><p class="muted" id="bkmsg" role="status"></p></div>
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.34</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.35</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -303,8 +309,8 @@ body:not(.livefit) #verlbl{display:none}
         <h2>Voices</h2>
         <label for="pn0">Parent 1 name<input id="pn0" type="text" maxlength="14" autocomplete="off"></label>
         <label for="pn1">Parent 2 name<input id="pn1" type="text" maxlength="14" autocomplete="off"></label>
-        <p class="muted">Record each person once, alone, in a quiet room. The app keeps a voice signature on this device only, so Tut knows who is talking. It is never sent anywhere. Redo it every few months.</p>
-        <p class="muted">Best results: 3 recordings per person (normal, loud and excited, quiet or far away), on different days, in the room where they play.</p><div class="group" id="voicelist"></div>
+        <p class="muted">Voice recordings stay on this phone (and in your backup file, if you save one). Tut uses them only to know who is talking.</p>
+        <p class="muted">Tap Record for a person: they read 3 short parts from the screen (about 30 seconds, normal, excited, then quiet). Do it in the room where they play. Add more only if the voice test says so.</p><div id="vrecard" hidden></div><div class="group" id="voicelist"></div>
         <p class="muted" id="voicemsg" role="status"></p><h3 style="margin:14px 0 4px">Voice test</h3><p class="muted">Each person says 5 short sentences; the app checks it recognised them. Do it after recording, in the play room.</p><div id="vtestbox"></div><p class="muted" id="vtestmsg" role="status"></p><p id="vtestsum" style="font-weight:700"></p>
       </div>
       <div class="group">
@@ -339,7 +345,7 @@ body:not(.livefit) #verlbl{display:none}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.34">v6.34</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.35">v6.35</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -1084,8 +1090,24 @@ function fbank(x) {
 function vNorm(v) { var s = 0, i; for (i = 0; i < v.length; i++) s += v[i] * v[i]; s = Math.sqrt(s) || 1; var o = new Float32Array(v.length); for (i = 0; i < v.length; i++) o[i] = v[i] / s; return o; }
 function vCos(a, b) { var s = 0, i; for (i = 0; i < a.length; i++) s += a[i] * b[i]; return s; }
 var VD = 192, VMODEL = 'campp-zh-en-adv'; /* 3D-Speaker CAM++ (200k speakers, Chinese + English) */
-(function () { /* voices saved with the old model cannot be compared with the new one: clear them once and ask for new recordings */
-  try { if (S.vmodel !== VMODEL) { var had = (S.vp || []).concat(S.pvp || []).some(Boolean); S.vp = [null, null, null, null]; S.pvp = [null, null]; S.vx = []; S.vl = []; S.vmodel = VMODEL; S.voiceReset = had; save(); } } catch (e) {} })();
+/* ---- the raw recordings are kept in the phone's database, so voices survive app and model updates ---- */
+function vdb() { return new Promise(function (ok, no) { var r = indexedDB.open('tut-voice', 1); r.onupgradeneeded = function () { r.result.createObjectStore('audio'); }; r.onsuccess = function () { ok(r.result); }; r.onerror = function () { no(r.error); }; }); }
+async function vAudioGet(i) { try { var db = await vdb(); return await new Promise(function (ok) { var q = db.transaction('audio').objectStore('audio').get(i); q.onsuccess = function () { ok(q.result || null); }; q.onerror = function () { ok(null); }; }); } catch (e) { return null; } }
+async function vAudioPut(i, val) { try { var db = await vdb(); await new Promise(function (ok) { var t = db.transaction('audio', 'readwrite'); if (val) t.objectStore('audio').put(val, i); else t.objectStore('audio').delete(i); t.oncomplete = ok; t.onerror = ok; }); } catch (e) {} }
+async function vAudioSave(i, x, add) { /* 16 kHz, 16-bit, up to 90 s per person */
+  var pcm = new Int16Array(x.length), k; for (k = 0; k < x.length; k++) pcm[k] = Math.max(-32768, Math.min(32767, Math.round(x[k] * 32767)));
+  var old = add ? await vAudioGet(i) : null, a = old && old.pcm ? old.pcm : new Int16Array(0), all = new Int16Array(Math.min(a.length + pcm.length, 16000 * 90));
+  var keep = all.length - pcm.length; if (keep > 0) all.set(a.subarray(a.length - keep)); all.set(pcm.subarray(Math.max(0, pcm.length - all.length)), Math.max(0, keep));
+  await vAudioPut(i, { pcm: all, when: Date.now() }); try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {} }
+async function vRelearnAll(note) { /* re-learn every saved voice from its recording (after a model change or a restore) */
+  var done = [];
+  for (var i = 0; i < 6; i++) { var a = await vAudioGet(i); if (!a || !a.pcm || !pName(i)) continue;
+    var x = new Float32Array(a.pcm.length), k; for (k = 0; k < x.length; k++) x[k] = a.pcm[k] / 32767;
+    try { var r = await vEnroll(i, x, false); if (r.ok) { done.push(pName(i)); S.vrec = S.vrec || []; S.vrec[i] = Math.max(3, S.vrec[i] || 0); } } catch (e) {} }
+  S.voiceReset = false; save(); try { drawVoices(); var m = $('voicemsg'); if (m && done.length) m.textContent = (note || 'Voices re-learned') + ': ' + done.join(', ') + '.'; } catch (e) {}
+  return done; }
+(function () { /* voices saved with an older model: re-learn them from the saved recordings (or ask for new ones if there are none) */
+  try { if (S.vmodel !== VMODEL) { setTimeout(function () { vRelearnAll('Updated to the new voice model from your saved recordings'); }, 4000); var had = (S.vp || []).concat(S.pvp || []).some(Boolean); S.vp = [null, null, null, null]; S.pvp = [null, null]; S.vx = []; S.vl = []; S.vmodel = VMODEL; S.voiceReset = had; save(); } } catch (e) {} })();
 async function vEmbed(x) {
   var fb = fbank(x); if (!fb || fb.T < 40) return null;
   var s = await vLoad(), r = await s.run({ x: new ort.Tensor('float32', fb.data, [1, fb.T, 80]) });
@@ -1203,6 +1225,18 @@ function vFeed(f) {
     if (V.quiet >= 0.6) { if ((!V.done && V.voiced >= 0.7) || (V.done && V.voiced >= 3)) vIdentify(); V.utt = []; V.uttN = 0; V.voiced = 0; V.quiet = 0; V.done = false; } }
 }
 /* enrolment recording (Parents screen) */
+/* One-step recording: one tap, three short parts read from the screen (normal, excited, quiet).
+   The script mixes all vowel sounds, numbers, a question, a name and some Masri, which gives the voice model the widest sample. */
+var VSCRIPT = [
+  { how: 'Normal voice', secs: 10, text: 'Hi Tut! My name is NAME. I like pizza, ice cream and chocolate cake. One, two, three, four, five, six, seven, eight, nine, ten.' },
+  { how: 'Loud and excited, like you just won!', secs: 9, text: 'Yes! I won the game! Go, go, go! The big brown dog jumps over the fence. Where is my red ball? Wow, that was so cool!' },
+  { how: 'Quiet and slow, like someone is sleeping', secs: 9, text: 'Shh, the baby is asleep. The little cat is hiding under the blue blanket. Yalla, good night Tut. Shukran, see you tomorrow.' }];
+function vCard(i, part, left, total) {
+  var c = $('vrecard'); if (!c) return; c.hidden = false; c.textContent = '';
+  var h = document.createElement('p'); h.className = 'vrhow'; h.textContent = pName(i) + ' • part ' + (part + 1) + ' of ' + total + ' • ' + VSCRIPT[part].how; c.appendChild(h);
+  var t = document.createElement('p'); t.className = 'vrtext'; t.textContent = VSCRIPT[part].text.replace('NAME', pName(i)); c.appendChild(t);
+  var bar = document.createElement('div'); bar.className = 'vrbar'; var f = document.createElement('div'); f.style.width = Math.round(100 * (1 - left / VSCRIPT[part].secs)) + '%'; bar.appendChild(f); c.appendChild(bar);
+}
 async function vRecord(i, btn, msg, add) {
   if (V.rec) return;
   var ac, stream;
@@ -1210,19 +1244,24 @@ async function vRecord(i, btn, msg, add) {
   catch (e) { msg.textContent = 'The microphone is blocked. Allow it for this page and try again.'; return; }
   var chunks = [], src = ac.createMediaStreamSource(stream), pr = ac.createScriptProcessor(4096, 1, 1), mute = ac.createGain(); mute.gain.value = 0;
   src.connect(pr); pr.connect(mute); mute.connect(ac.destination);
-  pr.onaudioprocess = function (e) { chunks.push(to16kF(e.inputBuffer.getChannelData(0), ac.sampleRate)); };
-  V.rec = true; var left = 20; btn.disabled = true;
-  var kind = add ? ((S.vrec || [])[i] || 1) + 1 : 1; msg.textContent = pName(i) + ', recording ' + Math.min(kind, 3) + ' of 3: keep talking for ' + left + ' seconds. ' + (kind <= 1 ? 'Normal voice: count to twenty, say what you ate today.' : kind === 2 ? 'Loud and excited this time, like you are winning a game.' : 'Quiet this time, or from across the room.');
-  var tm = setInterval(async function () {
-    left--; if (left > 0) { btn.textContent = left + ' s'; return; }
-    clearInterval(tm); pr.onaudioprocess = null; try { src.disconnect(); pr.disconnect(); } catch (e) {} stream.getTracks().forEach(function (t) { t.stop(); }); try { ac.close(); } catch (e) {}
-    var n = 0, k = 0; chunks.forEach(function (c) { n += c.length; }); var x = new Float32Array(n); chunks.forEach(function (c) { x.set(c, k); k += c.length; });
-    btn.textContent = 'Working...'; msg.textContent = 'Learning the voice...';
-    try { var r = await vEnroll(i, x, add); if (r.ok) { S.voiceReset = false; S.vrec = S.vrec || []; S.vrec[i] = add ? (S.vrec[i] || 1) + 1 : 1; save(); }
-      msg.textContent = r.ok ? ((add ? 'Added to ' : 'Saved ') + pName(i) + '\'s voice (' + r.n + ' samples).' + (r.close ? ' It sounds a lot like ' + r.close + ', so expect some mix-ups between them.' : '')) : r.why; }
-    catch (e) { msg.textContent = 'Could not learn the voice: ' + (e.message || e); }
-    V.rec = null; btn.disabled = false; drawVoices();
-  }, 1000);
+  var parts = add ? [Math.min(2, Math.max(0, ((S.vrec || [])[i] || 3) % 3))] : [0, 1, 2]; /* new voice: all three parts in one go; "Add more": one extra part */
+  V.rec = true; btn.disabled = true; msg.textContent = 'Read the words in the box out loud.';
+  $('vrecard').scrollIntoView({ block: 'center', behavior: 'smooth' });
+  for (var pi = 0; pi < parts.length; pi++) {
+    var part = parts[pi], left = VSCRIPT[part].secs;
+    vCard(i, part, left, add ? 1 : 3); await new Promise(function (r) { setTimeout(r, 1200); }); /* a moment to read */
+    pr.onaudioprocess = function (e) { chunks.push(to16kF(e.inputBuffer.getChannelData(0), ac.sampleRate)); };
+    while (left > 0) { btn.textContent = left + ' s'; vCard(i, part, left, add ? 1 : 3); await new Promise(function (r) { setTimeout(r, 1000); }); left--; }
+    pr.onaudioprocess = null;
+  }
+  try { src.disconnect(); pr.disconnect(); } catch (e) {} stream.getTracks().forEach(function (t) { t.stop(); }); try { ac.close(); } catch (e) {}
+  $('vrecard').hidden = true;
+  var n = 0, k = 0; chunks.forEach(function (c) { n += c.length; }); var x = new Float32Array(n); chunks.forEach(function (c) { x.set(c, k); k += c.length; });
+  btn.textContent = 'Working...'; msg.textContent = 'Learning the voice...';
+  try { var r = await vEnroll(i, x, add); if (r.ok) { vAudioSave(i, x, add); S.voiceReset = false; S.vrec = S.vrec || []; S.vrec[i] = add ? (S.vrec[i] || 3) + 1 : 3; save(); }
+    msg.textContent = r.ok ? ((add ? 'Added to ' : 'Saved ') + pName(i) + '\'s voice (' + r.n + ' samples). Next: run the voice test for ' + pName(i) + '.' + (r.close ? ' It sounds a lot like ' + r.close + ', so expect some mix-ups between them.' : '')) : r.why; }
+  catch (e) { msg.textContent = 'Could not learn the voice: ' + (e.message || e); }
+  V.rec = null; btn.disabled = false; drawVoices(); try { drawVTest(); } catch (e) {}
 }
 function drawVoices() {
   var box = $('voicelist'); box.innerHTML = ''; var any = false, i;
@@ -1232,12 +1271,12 @@ function drawVoices() {
     var t = document.createElement('span'); var nx = vxDec((S.vx || [])[i]).length, nl = vxDec((S.vl || [])[i]).length; t.textContent = n + (i >= 4 ? ' (parent)' : '') + ': ' + (vpGet(i) ? (nx ? nx + ' samples' + (nl ? ' + ' + nl + ' learned' : '') : 'old voice, tap Redo to upgrade') : 'no voice yet');
     var b = document.createElement('button'); b.type = 'button'; b.textContent = vpGet(i) ? 'Redo' : 'Record'; b.setAttribute('aria-label', (vpGet(i) ? 'Record again the voice of ' : 'Record the voice of ') + n);
     b.addEventListener('click', function () { vRecord(i, b, $('voicemsg')); });
-    var rc = vpGet(i) ? ((S.vrec || [])[i] || 1) : 0; t.textContent += vpGet(i) ? ' \u2022 ' + Math.min(rc, 3) + '/3 recordings' + (rc < 3 ? ' (tap Add more: ' + (rc === 1 ? 'loud and excited' : 'quiet or far away') + ')' : ' \u2713') : '';
+    if (vpGet(i) && (S.vrec || [])[i] >= 3) t.textContent += ' \u2713';
     r.appendChild(t); r.appendChild(b);
     if (vpGet(i)) { var am = document.createElement('button'); am.type = 'button'; am.textContent = 'Add more'; am.setAttribute('aria-label', 'Record more of the voice of ' + n);
       am.addEventListener('click', function () { vRecord(i, am, $('voicemsg'), true); }); r.appendChild(am); }
     if (vpGet(i)) { var d = document.createElement('button'); d.type = 'button'; d.textContent = 'Delete'; d.setAttribute('aria-label', 'Delete the saved voice of ' + n);
-      d.addEventListener('click', function () { vpSet(i, null); drawVoices(); $('voicemsg').textContent = 'Deleted ' + n + '\'s voice.'; }); r.appendChild(d); }
+      d.addEventListener('click', function () { vpSet(i, null); vAudioPut(i, null); drawVoices(); $('voicemsg').textContent = 'Deleted ' + n + '\'s voice.'; }); r.appendChild(d); }
     box.appendChild(r);
   })(i);
 }
@@ -1804,6 +1843,31 @@ function pcNameSaid(txt) {
     for (var k = 0; k < words.length; k++) { if (pcKey(words[k]) === pcKey(n) || (pcSkel(n).length >= 3 && pcNear(pcSkel(words[k]), pcSkel(n)))) best = i; } }
   return best;
 }
+
+/* ---- Backup: everything in one file (settings, scores, words, memory, voices with their recordings) ---- */
+function u8b64(u) { var s = '', i, n = 0x8000; for (i = 0; i < u.length; i += n) s += String.fromCharCode.apply(null, u.subarray(i, i + n)); return btoa(s); }
+function b64u8(s) { var bin = atob(s), u = new Uint8Array(bin.length), i; for (i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+$('bksave').addEventListener('click', async function () {
+  var msg = $('bkmsg'); msg.textContent = 'Packing the backup...';
+  var audio = {}; for (var i = 0; i < 6; i++) { var a = await vAudioGet(i); if (a && a.pcm) audio[i] = { when: a.when, pcm: u8b64(new Uint8Array(a.pcm.buffer, a.pcm.byteOffset, a.pcm.byteLength)) }; }
+  var o = { tutBackup: 1, ver: ($('verlbl') || {}).textContent || '', when: new Date().toISOString(), S: S, audio: audio, key: $('bkkey').checked ? LCFG : null };
+  var name = 'tut-backup-' + o.ver.replace(/\./g, '_') + '-' + o.when.slice(0, 10) + '.json', f = new File([JSON.stringify(o)], name, { type: 'application/json' });
+  try { if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: 'Tut backup' }); msg.textContent = 'Backup ready. Save it to Files, iCloud Drive or Google Drive.'; S.lastBackup = Date.now(); save(); return; } } catch (e) { if (e && e.name === 'AbortError') { msg.textContent = ''; return; } }
+  var l = document.createElement('a'); l.href = URL.createObjectURL(f); l.download = name; document.body.appendChild(l); l.click(); setTimeout(function () { l.remove(); }, 1500); S.lastBackup = Date.now(); save(); msg.textContent = 'Backup downloaded.';
+});
+$('bkload').addEventListener('click', function () { $('bkfile').click(); });
+$('bkfile').addEventListener('change', async function () {
+  var f = this.files && this.files[0], msg = $('bkmsg'); if (!f) return; this.value = '';
+  try { var o = JSON.parse(await f.text()); if (!o.tutBackup || !o.S) throw new Error('not a Tut backup');
+    if (!window.confirm('Replace everything on this phone with the backup from ' + new Date(o.when).toLocaleString() + '?')) return;
+    msg.textContent = 'Restoring...';
+    Object.keys(o.S).forEach(function (k) { S[k] = o.S[k]; }); save();
+    if (o.key && o.key.key) { Object.keys(o.key).forEach(function (k) { LCFG[k] = o.key[k]; }); saveL(); }
+    for (var i = 0; i < 6; i++) { if (o.audio && o.audio[i]) { var u = b64u8(o.audio[i].pcm); await vAudioPut(i, { pcm: new Int16Array(u.buffer), when: o.audio[i].when }); } }
+    msg.textContent = 'Re-learning the voices from the recordings (about a minute)...'; await vLoad(); await vRelearnAll('Restored and re-learned'); S.vmodel = VMODEL; save();
+    msg.textContent = 'Backup restored.'; drawPar(); drawFav(); drawWords(); drawNames(); drawVTest(); applySkin(); drawLive();
+  } catch (e) { msg.textContent = 'Could not restore: ' + (e.message || e); }
+});
 
 /* ---- Cartoon skin (from v2), kept in its own scope ---- */
 var CART = (function () {
