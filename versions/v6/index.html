@@ -269,9 +269,10 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
         <div class="nile"><i id="fambar"></i></div>
       </div>
     </div>
+      <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.25</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.26</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -334,7 +335,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.25">v6.25</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.26">v6.26</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -549,6 +550,24 @@ async function wakeOn() {
 }
 function wakeOff() { try { if (WAKE.lock) WAKE.lock.release(); } catch (e) {} WAKE.lock = null; try { if (WAKE.vid) WAKE.vid.pause(); } catch (e) {} }
 document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && L.on) { wakeOn(); try { L.ac && L.ac.resume(); } catch (e) {} } });
+/* ================= Session log: what happened in each session, plus problems noticed automatically.
+   Stays on this phone (Parents > Session logs) until a parent shares it. ================= */
+var LOG = { cur: null, all: [] };
+try { LOG.all = JSON.parse(localStorage.getItem('tut-log-v1') || '[]'); } catch (e) { LOG.all = []; }
+function logSave() { try { while (LOG.all.length > 30) LOG.all.shift(); var t = JSON.stringify(LOG.all); while (t.length > 1500000 && LOG.all.length > 1) { LOG.all.shift(); t = JSON.stringify(LOG.all); } localStorage.setItem('tut-log-v1', t); } catch (e) {} }
+function tlog(type, text) {
+  if (!LOG.cur) return; var c = LOG.cur; if (c.ev.length > 600) { if (!c.cut) { c.cut = 1; c.ev.push([Date.now() - c.t0, 'note', 'log full, later events dropped']); } return; }
+  c.ev.push([Date.now() - c.t0, type, String(text || '').slice(0, 300)]);
+  if (type === 'problem') c.problems = (c.problems || 0) + 1;
+  if (!c.saveT || Date.now() - c.saveT > 15000) { c.saveT = Date.now(); logSave(); }
+}
+function tprob(text) { tlog('problem', text); }
+function logStart() { LOG.cur = { t0: Date.now(), when: new Date().toISOString(), ver: (document.getElementById('verlbl') || {}).textContent || '', kids: active().map(function (k) { return S.names[k]; }), teach: S.teach == null ? 3 : S.teach, skin: S.skin || 'mummy', ev: [], problems: 0 }; LOG.all.push(LOG.cur); logSave(); }
+function logEnd(why) { if (!LOG.cur) return; var c = LOG.cur; c.mins = Math.round((Date.now() - c.t0) / 6000) / 10; c.end = why || 'put to sleep';
+  var n = function (t) { return c.ev.filter(function (e) { return e[1] === t; }).length; };
+  if (c.mins > 1 && n('kid') === 0) tprob('Whole session with no kid speech heard (mic or voice problem?)');
+  if (n('kid') > 6 && n('tut') === 0) tprob('Kids talked but Tut never answered');
+  c.sum = { kidTurns: n('kid'), tutTurns: n('tut'), tools: n('tool'), coach: n('coach'), problems: c.problems || 0 }; LOG.cur = null; logSave(); }
 function lNote(t) { /* silent context: adds to the conversation without making Tut answer */
   if (!(L.ready && L.ws && L.ws.readyState === 1)) return;
   if (L.noCC) { L.ws.send(JSON.stringify({ realtimeInput: { text: '[app note, not a person speaking; never answer it out loud] ' + t } })); return; }
@@ -777,7 +796,8 @@ function setupMsg(stage) {
   return m;
 }
 function scores() { var o = {}; active().forEach(function (i) { o[S.names[i]] = S.dpts[i]; }); return o; }
-function runTool(c) {
+function runTool(c) { var _r = runTool0(c); try { tlog('tool', c.name + ' ' + JSON.stringify(c.args || {}).slice(0, 160) + (_r && _r.error ? ' -> ERROR ' + _r.error : '')); if (_r && _r.error && !/Only in instructions mode|Refused/.test(_r.error)) tprob('Tool ' + c.name + ' failed: ' + _r.error); } catch (e) {} return _r; }
+function runTool0(c) {
   var a = c.args || {};
   if (c.name === 'award_points') {
     var i = findKid(a.child); if (i < 0) return { error: 'No child called ' + a.child + '. The children are: ' + active().map(function (x) { return S.names[x]; }).join(', ') };
@@ -888,17 +908,21 @@ function liveMsg(m) {
   }
   if (sc.modelTurn && sc.modelTurn.parts) sc.modelTurn.parts.forEach(function (p) {
     if (p.inlineData && p.inlineData.data) {
-      if (!L.playing.length) { lStatus('Tut is talking.'); L.heard = ''; }
+      if (!L.playing.length) { if (L.heard.trim()) tlog('kid', (L.who >= 0 ? pName(L.who) : '?') + ': ' + L.heard.trim()); lStatus('Tut is talking.'); L.heard = ''; }
       playPCM(p.inlineData.data, p.inlineData.mimeType);
     }
   });
   if (sc.turnComplete) { L.newTurn = true; var said = (L.out || '').trim(); try { coachTurn(said); } catch (e) {}
+    if (said) { tlog('tut', said); var low = said.toLowerCase();
+      if ((S.said || []).slice(-15).some(function (x) { return x.toLowerCase() === low.slice(0, 140); }) && said.length > 20) tprob('Tut repeated an earlier line word for word');
+      if (/app note|\[app|coach message|practice step|no speech/i.test(said)) tprob('Tut read out an internal note');
+      if (/3,?000 years|three thousand years|woke me|waking me/i.test(said)) tlog('note', 'Used the old "3,000 years / waking up" bit'); }
     if (said.length > 8 && said !== L.lastSaved) { L.lastSaved = said; S.said = (S.said || []).concat(said.slice(0, 140)); while (S.said.length > 40) S.said.shift(); save(); } }
 }
 /* Chaos watch: checks the room every ~0.1 s on the phone itself. Nonstop yelling / talking over each other
    gets called out after a few seconds instead of waiting for the noise to end. */
 var CH = { floor: 0.01, run: 0, gap: 0, loud: [], last: 0, calls: 0, check: 0 };
-function chaosSend(t) { if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: t } })); }
+function chaosSend(t) { tlog('chaos', t.slice(0, 120)); if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: t } })); }
 function chaosFeed(f, dt) {
   var e = 0, i; for (i = 0; i < f.length; i++) e += f[i] * f[i]; var r = Math.sqrt(e / f.length), now = Date.now();
   if (r < CH.floor * 2.5) CH.floor += (r - CH.floor) * 0.05; else CH.floor *= 1.0008; /* background level follows the quiet parts */
@@ -941,6 +965,7 @@ function liveConnect() {
   ws.onclose = function (ev) {
     if (L.ws !== ws) return;
     var why = ev.reason || '';
+    if (!L.byUser) tprob('Connection closed: ' + (why || 'code ' + ev.code) + (L.ready ? ' (mid-session)' : ' (at start, setup stage ' + L.stage + ')'));
     if (L.byUser) { liveStop(''); return; }
     if (!L.ready && L.stage < 4 && !/key|permission|quota|billing|not found|unsupported location/i.test(why)) { L.stage++; liveConnect(); return; }
     if (L.ready && !L.noCC && L.ccT && Date.now() - L.ccT < 4000) { L.noCC = true; L.ready = false; liveConnect(); return; } /* model refused silent notes: reconnect and use the other way */
@@ -961,6 +986,7 @@ async function liveStart() {
   if (vHas()) vLoad().catch(function (e) { lErr('Voice recognition could not start: ' + (e.message || e)); });
   if (!window.WebSocket || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { lErr('This browser cannot use the microphone here. Open the app in Edge, Chrome or Safari.'); return; }
   wakeOn();
+  logStart();
   L.on = true; L.byUser = false; L.stage = 0; L.handle = null; L.resumed = false; L.out = ''; L.heard = ''; L.newTurn = true;
   $('ltalk').classList.add('live'); $('ltalklbl').textContent = 'Send Tut to sleep'; lStatus('Waking Tut...'); rigMood('shocked', 1500);
   try { L.ac = L.ac || new (window.AudioContext || window.webkitAudioContext)(); await L.ac.resume();
@@ -972,6 +998,7 @@ async function liveStart() {
   liveConnect();
 }
 function liveStop(msg) {
+  try { if (msg) tprob('Stopped: ' + msg); logEnd(msg ? 'error' : 'put to sleep'); } catch (e) {}
   wakeOff();
   L.on = false; L.ready = false; hush();
   var ws = L.ws; L.ws = null; if (ws) { try { ws.onclose = null; ws.close(); } catch (e) {} }
@@ -1130,12 +1157,13 @@ async function vIdentify() {
     var r = await vWho(x.subarray(k)); if (!r) return;
     V.log.push(r.sc.map(function (s) { return pName(s.i) + ' ' + s.s.toFixed(2); }).join(', ')); if (V.log.length > 30) V.log.shift();
     if (r.i >= 0) V.last = { i: r.i, t: Date.now() };
+    if (r.i >= 0 && L.who !== r.i) try { tlog('voice', pName(r.i) + ' ' + Math.round(r.p * 100) + '%'); } catch (e) {}
     if (r.i >= 0 && r.i < 4) { V.seen = V.seen || {}; V.seen[r.i] = Date.now(); }
     if (r.i >= 0 && r.p >= 0.98 && r.best.s >= 0.45 && x.length - k >= 32000) vAdd(r.i, r.raw);
     if (L.inst && r.i >= 0 && r.i < 4) { instSet(false); vNote('A kid is talking now, so the app closed instructions mode. Go back to being Tut.'); }
     if (L.inst && Date.now() - L.instT > 240000) { instSet(false); vNote('Instructions mode timed out and is closed.'); }
     if (r.i >= 0) { if (L.who !== r.i) { L.who = r.i; drawLive(); vNote(r.i < 4 ? 'Voice match: the kid talking right now is ' + pName(r.i) + '.' : 'Voice match: the person talking right now is ' + pName(r.i) + ', a parent, not a kid.'); } $('lheard').textContent = 'Voice: ' + pName(r.i) + ' (' + Math.round(r.p * 100) + '% sure)'; }
-    else { if (L.who !== -1) { L.who = -1; drawLive(); vNote('The app could not tell whose voice this is. If it matters (points, names), ask who is talking.'); } $('lheard').textContent = 'Voice: not sure (maybe ' + pName(r.best.i) + ', ' + Math.round(r.p * 100) + '%)'; }
+    else { if (L.who !== -1) { L.who = -1; drawLive(); vNote('The app could not tell whose voice this is. If it matters (points, names), ask who is talking.'); } try { V.unsure = (V.unsure || 0) + 1; tlog('voice', 'not sure (maybe ' + pName(r.best.i) + ' ' + Math.round(r.p * 100) + '%)'); } catch (e) {} $('lheard').textContent = 'Voice: not sure (maybe ' + pName(r.best.i) + ', ' + Math.round(r.p * 100) + '%)'; }
   } catch (e) { $('lheard').textContent = 'Voice check failed: ' + (e.message || e); }
   finally { V.busy = false; }
 }
@@ -1486,13 +1514,13 @@ var PR = { on: false, t: 0 };
 function pslideDraw(v) { var w = $('pslide').clientWidth || 300, k = 6 + (w - 64) * v / 100 + (PR.grabFix || 0) * 0; $('pslide').querySelector('.knob').style.left = k + 'px'; $('pslide').querySelector('.fill').style.width = (k + 58) + 'px'; }
 function practiceUI(on) { PR.on = on; $('lpractice').value = on ? 100 : 0; pslideDraw(on ? 100 : 0); $('pslide').classList.toggle('on', on);
   $('pslbl').textContent = on ? 'Practising. Slide back to stop' : 'Slide to practice'; $('lpractice').setAttribute('aria-label', on ? 'Practice is on. Slide left to stop.' : 'Slide right to start practice with Tut'); }
-function practiceStart() {
+function practiceStart() { try { tlog('practice', 'started'); } catch (e) {}
   if (!(L.on && L.ready)) { L.practiceNext = true; practiceUI(true); PR.t = Date.now(); if (!L.on) $('ltalk').click(); return; } /* already waking up: do not toggle him off */
   var heard = L.audioT || 0; practiceUI(true); PR.t = Date.now(); lStatus('Starting practice...'); pcStart();
   if (!practiceSend(false)) return;
   setTimeout(function () { if (PR.on && (L.audioT || 0) <= heard && L.on) practiceSend(true); }, 5000);
 }
-function practiceStop(fromTut) { if (!PR.on) return; if (!fromTut || Date.now() - PR.t >= 45000 || PR.endAsked) { clearInterval(PC.timer); PC.cur = null; } if (fromTut && Date.now() - PR.t < 45000 && !PR.endAsked) return; PR.endAsked = false; practiceUI(false);
+function practiceStop(fromTut) { try { tlog('practice', 'stopped by ' + (fromTut ? 'Tut' : 'kid (slider)')); } catch (e) {} if (!PR.on) return; if (!fromTut || Date.now() - PR.t >= 45000 || PR.endAsked) { clearInterval(PC.timer); PC.cur = null; } if (fromTut && Date.now() - PR.t < 45000 && !PR.endAsked) return; PR.endAsked = false; practiceUI(false);
   if (!fromTut) L.practiceNext = false;
   if (!fromTut && L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'PRACTICE OVER: the kid slid the practice switch off. Wrap up in one short line (with any points said out loud), then go back to normal and stay quiet.' } })); }
 $('lpractice').addEventListener('input', function () { pslideDraw(+this.value); }); /* keyboard / screen readers */
@@ -1522,7 +1550,7 @@ function goView(v) {
 }
 function plOpened() { /* parent is in: Tut stops listening and goes quiet */
   if (L.on) { L.byUser = true; liveStop(''); }
-  drawPar(); drawFav(); drawWords();
+  drawPar(); drawFav(); drawWords(); drawLogs();
 }
 $('plback').addEventListener('click', function () { goView('live'); });
 $('pdone').addEventListener('click', function () { save(); goView('live'); });
@@ -1587,7 +1615,7 @@ function pcStepText(s) {
   if (s.type === 'new') return 'NEW WORD for ' + who + ': say "' + s.ar + '" (' + s.tr + ') clearly, and say out loud in English that it means "' + s.en + '". Then ask ' + who + ' to say it back. Call show_phrase for it.';
   return 'MEMORY TEST for ' + who + ': ask "How do you say \'' + s.en + '\' in Masri?" Do NOT say the answer first. The answer is "' + s.tr + '" (' + s.ar + '). If they get it: 5 points. If not: give a hint, then the answer and its meaning, and move on.';
 }
-function pcSend(t) { if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'COACH (practice step, follow it now): ' + t } })); PC.lastAct = Date.now(); }
+function pcSend(t) { try { tlog('coach', t); } catch (e) {} if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'COACH (practice step, follow it now): ' + t } })); PC.lastAct = Date.now(); }
 function pcNext(prefix) {
   if (!PR.on) return;
   PC.cur = PC.q.shift(); PC.tries = 0; PC.nudges = 0; PC.meantOk = false; PC.waitNext = false;
@@ -1600,18 +1628,18 @@ function pcFirstStep() { PC.cur = PC.q.shift() || null; return PC.cur ? ' First 
 /* Tut finished talking */
 function coachTurn(said) {
   if (!PR.on) return; PC.lastAct = Date.now(); var t = String(said || '');
-  if (/\bmash?ree\b|\bmashri\b|\bmashry\b/i.test(t)) pcSend('Pronunciation fix: it is "Masri" with an S, like "mass-ree" (مصري), never "Mashri". Say it right next time.');
+  if (/\bmash?ree\b|\bmashri\b|\bmashry\b/i.test(t)) { tprob('Mispronounced Masri as "Mashri"'); } if (/\bmash?ree\b|\bmashri\b|\bmashry\b/i.test(t)) pcSend('Pronunciation fix: it is "Masri" with an S, like "mass-ree" (مصري), never "Mashri". Say it right next time.');
   if (PC.cur && PC.cur.type === 'new' && !PC.meantOk) {
     var en = PC.cur.en.toLowerCase().split(/[ ,]+/).filter(function (w) { return w.length > 2; });
     if (/means|meaning|in english/i.test(t) || en.some(function (w) { return t.toLowerCase().indexOf(w) >= 0; })) PC.meantOk = true;
-    else if (t.length > 3) { PC.meantOk = true; pcSend('You did not say what "' + PC.cur.tr + '" means. Say it now in one short line: "' + PC.cur.tr + ' means ' + PC.cur.en + '." Then let them say it back.'); return; }
+    else if (t.length > 3) { PC.meantOk = true; tprob('Practice: Tut did not say what "' + PC.cur.tr + '" means'); pcSend('You did not say what "' + PC.cur.tr + '" means. Say it now in one short line: "' + PC.cur.tr + ' means ' + PC.cur.en + '." Then let them say it back.'); return; }
   }
   if (PC.waitNext) pcNext();
 }
 /* the kid spoke */
 function coachHeard(txt) {
   if (!PR.on) return; PC.lastAct = Date.now();
-  if (/what'?s next|what is next|next one|next word|another one|and now|what now|ok next|next please/i.test(String(txt).slice(-60))) { L.heard = ''; pcNext('The kid asked for the next one, so go straight on. '); }
+  if (/what'?s next|what is next|next one|next word|another one|and now|what now|ok next|next please/i.test(String(txt).slice(-60))) { tprob('Practice stalled: kid had to ask for the next word'); L.heard = ''; pcNext('The kid asked for the next one, so go straight on. '); }
 }
 /* Tut recorded an answer */
 function coachRecord(child, word, result) {
@@ -1627,10 +1655,33 @@ function pcTick() {
   if ((L.playing && L.playing.length) || (L.ac && L.nextT > L.ac.currentTime - 0.5)) { PC.lastAct = Date.now(); return; }
   var idle = Date.now() - PC.lastAct;
   if (PC.waitNext && idle > 2500) { pcNext(); return; }
-  if (idle > 10000) { PC.nudges++;
+  if (idle > 10000) { PC.nudges++; tprob('Practice went quiet for 10 s' + (PC.cur ? ' on "' + PC.cur.tr + '"' : ''));
     if (PC.nudges >= 2) pcNext('Nobody answered, so move on. ');
     else pcSend('It has gone quiet. Keep the practice moving: ' + (PC.cur ? 'repeat the question for "' + PC.cur.en + '" once, short.' : 'give the next word.')); }
 }
+
+/* ---- Parents: session logs ---- */
+function logText() {
+  var out = ['Tut session logs, exported ' + new Date().toString(), ''];
+  LOG.all.forEach(function (c, n) {
+    out.push('=== Session ' + (n + 1) + ': ' + new Date(c.when).toLocaleString() + ' | ' + (c.mins || '?') + ' min | ' + c.ver + ' | kids: ' + (c.kids || []).join(', ') + ' | teach ' + c.teach + ' | problems: ' + (c.problems || 0) + ' | ended: ' + (c.end || 'still running'));
+    c.ev.forEach(function (e) { var s = Math.round(e[0] / 1000); out.push(('   ' + Math.floor(s / 60)).slice(-3) + ':' + ('0' + s % 60).slice(-2) + ' ' + (e[1] === 'problem' ? '!! PROBLEM' : e[1]).toUpperCase() + ' ' + e[2]); });
+    out.push('');
+  });
+  return out.join('\n');
+}
+function drawLogs() {
+  var box = $('logbox'); if (!box) return; box.textContent = '';
+  if (!LOG.all.length) { box.textContent = 'No sessions logged yet.'; return; }
+  LOG.all.slice(-8).reverse().forEach(function (c) { var d = document.createElement('div'); d.className = 'memrow';
+    d.textContent = new Date(c.when).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' • ' + (c.mins || '?') + ' min • ' + (c.ev || []).length + ' events • ' + (c.problems || 0) + ' problems'; box.appendChild(d); });
+}
+$('logshare').addEventListener('click', async function () {
+  var t = logText(), name = 'tut-logs-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-') + '.txt';
+  try { var f = new File([t], name, { type: 'text/plain' }); if (navigator.canShare && navigator.canShare({ files: [f] })) { await navigator.share({ files: [f], title: 'Tut session logs' }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/plain' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 1000);
+});
+$('logclear').addEventListener('click', function () { if (!window.confirm('Delete all session logs on this phone?')) return; LOG.all = []; LOG.cur = null; logSave(); drawLogs(); });
 
 /* ---- Cartoon skin (from v2), kept in its own scope ---- */
 var CART = (function () {
