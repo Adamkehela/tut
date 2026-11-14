@@ -90,9 +90,10 @@
    "Tut announces every point change by name and number, rotating lines, sarcastic for lost points; changes made while he slept are announced when he wakes",
    "Practice is now a slide-right switch that slides back when practice ends; Tut practises only with the kid(s) actually there (by voice, or asks who is practising)",
    "Tut says each word's meaning out loud; tests recall, not just repeating; 1 point for repeating, 5 for remembering on their own; only remembered words count as mastered",
-   "Version number (vX.Y) shown on the Tut screen and in Parents"
+   "Version number (vX.Y) shown on the Tut screen and in Parents",
+   "Practice coach inside the app: picks the words, sends Tut each next step, makes sure he says the meaning, fixes 'Mashri', moves on when it stalls or a kid asks what's next"
   ],
   "note": "Needs a Google Gemini key in Parents.",
-  "minor": 24
+  "minor": 25
  }
 ]

@@ -271,7 +271,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
     </div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.24</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.25</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -334,7 +334,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.24">v6.24</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.25">v6.25</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -655,6 +655,8 @@ wl,
 '- Losses: sarcastic, dry, never mean about the kid themself, always about the moment. Rotate. For example: "Ooh. Yaseen just lost five points. Tragic. I will light a candle." / "Emy, minus ten. Congratulations, you are going backwards." / "And that is five points gone for Ryyaan. Bye-bye, points. يا خسارة." / "Minus five, Yaseen. A moment of silence for your score." / "Ten points evaporated from Emy. Impressive, in the wrong direction." / "خلاص, Ryyaan: minus five. The points have left the building."',
 '- Make up new lines in the same spirit; do not reuse the examples word for word every time.',
 '',
+'- COACH messages: during practice the app sends COACH messages with the exact next step (which word, new word or memory test, for which kid). Follow each one right away, out loud. Do not wait to be asked "what is next". After a kid answers, call record_word, say the points, and the coach sends the next step.',
+'- Pronunciation: "Masri" (مصري) is said with an S: "MAS-ree", never "Mashri". Cairo pronunciation: ق is a glottal stop (قطة = \'oṭṭa), ج is a hard g (جعان = ga\'ān).',
 '- Never call end_practice at the start of practice; only after real rounds and your wrap-up line.',
 '- PRACTICE: when a message says PRACTICE BUTTON, the kids are asking you directly. Always answer it out loud immediately and run the word challenge it describes. This overrides staying quiet.',
 '- CHAOS: if a [app: CHAOS ALERT] note arrives, or you can hear kids screaming, yelling or all talking over each other nonstop, do not wait politely for it to end. Cut in straight away, call it out like a cool older cousin who has had enough ("Whoa. WHOA. بس! What is this, a camel market? One at a time."), tell them to stop now and speak one at a time, then listen. Fresh wording each time. If it keeps going after you called it out, be firmer and shorter ("خلاص بقى. I am not talking to a stampede."). Once it calms down, drop it and carry on normally.',
@@ -790,7 +792,7 @@ function runTool(c) {
     w.ar = String(a.arabic || w.ar).slice(0, 40); w.tr = String(a.say_it || w.tr).slice(0, 40); w.en = String(a.meaning || w.en).slice(0, 60); w.last = Date.now();
     var res = String(a.result || '').toLowerCase();
     w.rep = w.rep || 0; if (res === 'repeated') w.rep++; else if (res === 'recalled' || res === 'right') { w.right++; w.streak++; } else if (res === 'wrong') { w.wrong++; w.streak = 0; }
-    w.mastered = w.right >= 3 && w.streak >= 2; save();
+    w.mastered = w.right >= 3 && w.streak >= 2; save(); try { coachRecord(S.names[ki], w.tr, res === 'right' ? 'recalled' : res); } catch (e) {}
     return { result: 'ok', child: S.names[ki], word: w.tr, right: w.right, wrong: w.wrong, mastered: w.mastered, note: w.mastered ? 'Mastered (recalled on their own). Move on to another word.' : 'Not mastered yet: test recall (guess-it) again a few turns later.' };
   }
   if (c.name === 'show_phrase') {
@@ -879,7 +881,7 @@ function liveMsg(m) {
   if (false) { $('lheard').textContent = 'Tut is getting sleepy. He will need waking again soon.'; }
   var sc = m.serverContent; if (!sc) return;
   if (sc.interrupted) { hush(); L.newTurn = true; }
-  if (sc.inputTranscription && sc.inputTranscription.text) { L.heard += cleanTx(sc.inputTranscription.text); var hh = L.heard.trim(); if (hh) $('lheard').textContent = 'Tut heard: ' + hh.slice(-90); }
+  if (sc.inputTranscription && sc.inputTranscription.text) { L.heard += cleanTx(sc.inputTranscription.text); try { coachHeard(L.heard); } catch (e) {} var hh = L.heard.trim(); if (hh) $('lheard').textContent = 'Tut heard: ' + hh.slice(-90); }
   if (sc.outputTranscription && sc.outputTranscription.text) {
     if (L.newTurn) { L.out = ''; L.newTurn = false; }
     L.out += cleanTx(sc.outputTranscription.text); if (L.out.trim()) $('lbubble').textContent = L.out.trim(); vibeFrom(sc.outputTranscription.text);
@@ -890,7 +892,7 @@ function liveMsg(m) {
       playPCM(p.inlineData.data, p.inlineData.mimeType);
     }
   });
-  if (sc.turnComplete) { L.newTurn = true; var said = (L.out || '').trim();
+  if (sc.turnComplete) { L.newTurn = true; var said = (L.out || '').trim(); try { coachTurn(said); } catch (e) {}
     if (said.length > 8 && said !== L.lastSaved) { L.lastSaved = said; S.said = (S.said || []).concat(said.slice(0, 140)); while (S.said.length > 40) S.said.shift(); save(); } }
 }
 /* Chaos watch: checks the room every ~0.1 s on the phone itself. Nonstop yelling / talking over each other
@@ -1473,7 +1475,7 @@ function practiceOpener() { var used = S.popen || [], c = POPEN.map(function (x,
 function practiceSend(viaText) {
   var seen = active().filter(function (k) { return V.seen && V.seen[k] && Date.now() - V.seen[k] < 180000; }).map(function (k) { return S.names[k]; });
   var who = seen.length ? ' The app recognised these kids talking in the last few minutes: ' + seen.join(', ') + '. Only they are probably here. Start with them, by name.' : ' The app does not know which kids are here. Right after your opener, ask who is practising with you, and play ONLY with the kid(s) who answer.';
-  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise Masri with them. Start straight away, out loud, following PRACTICE MODE. Open with this line (in your own voice, Masri sprinkles allowed): "' + (L.pOpen = practiceOpener()) + '" Then explain the game clearly and start the first round with the first kid by name.' + who;
+  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise Masri with them. Start straight away, out loud, following PRACTICE MODE. Open with this line (in your own voice, Masri sprinkles allowed): "' + (L.pOpen = practiceOpener()) + '" Then explain the game in one sentence: you give a word and its meaning, they say it back for 1 point, and later you test if they remember it for 5 points.' + who + ' The app coach will send each next step as a COACH message; follow them exactly and keep moving.' + (PC.cur ? '' : pcFirstStep());
   if (!(L.ready && L.ws && L.ws.readyState === 1)) return false;
   if (!viaText && !L.noCC) L.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
   else L.ws.send(JSON.stringify({ realtimeInput: { text: msg } }));
@@ -1486,11 +1488,11 @@ function practiceUI(on) { PR.on = on; $('lpractice').value = on ? 100 : 0; pslid
   $('pslbl').textContent = on ? 'Practising. Slide back to stop' : 'Slide to practice'; $('lpractice').setAttribute('aria-label', on ? 'Practice is on. Slide left to stop.' : 'Slide right to start practice with Tut'); }
 function practiceStart() {
   if (!(L.on && L.ready)) { L.practiceNext = true; practiceUI(true); PR.t = Date.now(); if (!L.on) $('ltalk').click(); return; } /* already waking up: do not toggle him off */
-  var heard = L.audioT || 0; practiceUI(true); PR.t = Date.now(); lStatus('Starting practice...');
+  var heard = L.audioT || 0; practiceUI(true); PR.t = Date.now(); lStatus('Starting practice...'); pcStart();
   if (!practiceSend(false)) return;
   setTimeout(function () { if (PR.on && (L.audioT || 0) <= heard && L.on) practiceSend(true); }, 5000);
 }
-function practiceStop(fromTut) { if (!PR.on) return; if (fromTut && Date.now() - PR.t < 45000 && !PR.endAsked) return; PR.endAsked = false; practiceUI(false);
+function practiceStop(fromTut) { if (!PR.on) return; if (!fromTut || Date.now() - PR.t >= 45000 || PR.endAsked) { clearInterval(PC.timer); PC.cur = null; } if (fromTut && Date.now() - PR.t < 45000 && !PR.endAsked) return; PR.endAsked = false; practiceUI(false);
   if (!fromTut) L.practiceNext = false;
   if (!fromTut && L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'PRACTICE OVER: the kid slid the practice switch off. Wrap up in one short line (with any points said out loud), then go back to normal and stay quiet.' } })); }
 $('lpractice').addEventListener('input', function () { pslideDraw(+this.value); }); /* keyboard / screen readers */
@@ -1555,6 +1557,80 @@ function drawWords() {
 }
 
 document.body.classList.add('livefit');
+
+/* ================= Practice coach: an observer that runs the practice step by step =================
+   Runs on the phone, no extra Google calls. It picks the words, tells Tut the next step,
+   checks Tut said the meaning, catches "Mashri", and moves things on when they stall. */
+var PWORDS = [['جعان','ga\'ān','hungry'],['عطشان','\'aṭshān','thirsty'],['تعبان','ta\'bān','tired'],['مبسوط','mabsūṭ','happy'],['زعلان','za\'lān','upset'],
+  ['مَيّة','mayya','water'],['عيش','\'ēsh','bread'],['أكل','akl','food'],['لبن','laban','milk'],['بيت','bēt','house'],['مدرسة','madrasa','school'],
+  ['لعبة','li\'ba','toy or game'],['كورة','kōra','ball'],['كلب','kalb','dog'],['قطة','\'oṭṭa','cat'],['أحمر','aḥmar','red'],['أزرق','azra\'','blue'],
+  ['أخضر','akhḍar','green'],['أصفر','aṣfar','yellow'],['واحد','wāḥed','one'],['اتنين','etnēn','two'],['تلاتة','talāta','three'],['أربعة','arba\'a','four'],
+  ['خمسة','khamsa','five'],['يلا','yalla','come on, let\'s go'],['استنّى','estanna','wait'],['تعالى','ta\'āla','come here'],['أيوه','aywa','yes'],['لأ','la\'','no'],
+  ['شكراً','shukran','thank you'],['من فضلك','min faḍlak','please'],['جامد','gāmed','cool, great'],['حلو','ḥelw','nice, sweet'],['كبير','kebīr','big'],
+  ['صغير','ṣughayyar','small'],['سخن','sukhn','hot'],['ساقع','sā\'e\'','cold'],['بكرة','bukra','tomorrow'],['النهارده','en-naharda','today'],
+  ['أخويا','akhūya','my brother'],['أختي','ukhti','my sister'],['صاحبي','ṣāḥbi','my friend']];
+var PC = { q: [], cur: null, kid: '', tries: 0, nudges: 0, waitNext: false, meantOk: false, lastAct: 0, timer: null };
+function pcKey(w) { return String(w).toLowerCase().replace(/[^a-z]/g, ''); }
+function pcBuild() {
+  var k = -1; active().forEach(function (i) { if (S.names[i] && pcKey(S.names[i]) === pcKey(PC.kid)) k = i; });
+  var bk = k >= 0 ? ((S.words || {})[k] || {}) : {}, have = {}, q = [], x;
+  Object.keys(bk).forEach(function (t) { have[pcKey(bk[t].tr)] = 1; });
+  var learn = Object.keys(bk).filter(function (t) { return !bk[t].mastered; }).sort(function () { return Math.random() - 0.5; }).slice(0, 3);
+  learn.forEach(function (t) { q.push({ type: 'recall', ar: bk[t].ar, tr: bk[t].tr, en: bk[t].en }); });
+  var pool = PWORDS.map(function (w) { return { ar: w[0], tr: w[1], en: w[2] }; }).concat((D.phr || []).map(function (p) { return { ar: p.ar, tr: p.tr, en: p.en }; }))
+    .filter(function (w) { return !have[pcKey(w.tr)]; }).sort(function () { return Math.random() - 0.5; });
+  for (x = 0; x < pool.length && q.filter(function (s) { return s.type === 'new'; }).length < 4; x++) q.splice(Math.min(q.length, 1 + 2 * x), 0, { type: 'new', ar: pool[x].ar, tr: pool[x].tr, en: pool[x].en });
+  PC.q = q;
+}
+function pcStepText(s) {
+  var who = PC.kid || 'the kid who is practising';
+  if (s.type === 'new') return 'NEW WORD for ' + who + ': say "' + s.ar + '" (' + s.tr + ') clearly, and say out loud in English that it means "' + s.en + '". Then ask ' + who + ' to say it back. Call show_phrase for it.';
+  return 'MEMORY TEST for ' + who + ': ask "How do you say \'' + s.en + '\' in Masri?" Do NOT say the answer first. The answer is "' + s.tr + '" (' + s.ar + '). If they get it: 5 points. If not: give a hint, then the answer and its meaning, and move on.';
+}
+function pcSend(t) { if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'COACH (practice step, follow it now): ' + t } })); PC.lastAct = Date.now(); }
+function pcNext(prefix) {
+  if (!PR.on) return;
+  PC.cur = PC.q.shift(); PC.tries = 0; PC.nudges = 0; PC.meantOk = false; PC.waitNext = false;
+  if (!PC.cur) { pcSend((prefix || '') + 'That was the last word. Wrap up in one line: who remembered what, with points said out loud. Then call end_practice.'); return; }
+  pcSend((prefix || '') + pcStepText(PC.cur));
+}
+function pcStart() { PC.kid = ''; var seen = active().filter(function (k) { return V.seen && V.seen[k] && Date.now() - V.seen[k] < 180000; });
+  if (seen.length === 1) PC.kid = S.names[seen[0]]; pcBuild(); PC.cur = null; clearInterval(PC.timer); PC.timer = setInterval(pcTick, 1000); }
+function pcFirstStep() { PC.cur = PC.q.shift() || null; return PC.cur ? ' First step: ' + pcStepText(PC.cur) : ''; }
+/* Tut finished talking */
+function coachTurn(said) {
+  if (!PR.on) return; PC.lastAct = Date.now(); var t = String(said || '');
+  if (/\bmash?ree\b|\bmashri\b|\bmashry\b/i.test(t)) pcSend('Pronunciation fix: it is "Masri" with an S, like "mass-ree" (مصري), never "Mashri". Say it right next time.');
+  if (PC.cur && PC.cur.type === 'new' && !PC.meantOk) {
+    var en = PC.cur.en.toLowerCase().split(/[ ,]+/).filter(function (w) { return w.length > 2; });
+    if (/means|meaning|in english/i.test(t) || en.some(function (w) { return t.toLowerCase().indexOf(w) >= 0; })) PC.meantOk = true;
+    else if (t.length > 3) { PC.meantOk = true; pcSend('You did not say what "' + PC.cur.tr + '" means. Say it now in one short line: "' + PC.cur.tr + ' means ' + PC.cur.en + '." Then let them say it back.'); return; }
+  }
+  if (PC.waitNext) pcNext();
+}
+/* the kid spoke */
+function coachHeard(txt) {
+  if (!PR.on) return; PC.lastAct = Date.now();
+  if (/what'?s next|what is next|next one|next word|another one|and now|what now|ok next|next please/i.test(String(txt).slice(-60))) { L.heard = ''; pcNext('The kid asked for the next one, so go straight on. '); }
+}
+/* Tut recorded an answer */
+function coachRecord(child, word, result) {
+  if (!PR.on) return; if (!PC.kid && child) { PC.kid = child; }
+  if (!PC.cur || pcKey(word) !== pcKey(PC.cur.tr)) return;
+  if (result === 'taught') return;
+  if (result === 'wrong' && ++PC.tries < 2) return;
+  if (PC.cur.type === 'new') PC.q.splice(Math.min(PC.q.length, 2), 0, { type: 'recall', ar: PC.cur.ar, tr: PC.cur.tr, en: PC.cur.en });
+  PC.waitNext = true; /* next step goes out as soon as Tut finishes this turn */
+}
+function pcTick() {
+  if (!PR.on) { clearInterval(PC.timer); return; }
+  if ((L.playing && L.playing.length) || (L.ac && L.nextT > L.ac.currentTime - 0.5)) { PC.lastAct = Date.now(); return; }
+  var idle = Date.now() - PC.lastAct;
+  if (PC.waitNext && idle > 2500) { pcNext(); return; }
+  if (idle > 10000) { PC.nudges++;
+    if (PC.nudges >= 2) pcNext('Nobody answered, so move on. ');
+    else pcSend('It has gone quiet. Keep the practice moving: ' + (PC.cur ? 'repeat the question for "' + PC.cur.en + '" once, short.' : 'give the next word.')); }
+}
 
 /* ---- Cartoon skin (from v2), kept in its own scope ---- */
 var CART = (function () {
