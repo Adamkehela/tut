@@ -272,7 +272,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.26</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.27</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
       </div>
       <div class="group">
@@ -335,7 +335,7 @@ body:not(.livefit) #verlbl{color:rgba(30,40,80,.5)}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.26">v6.26</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.27">v6.27</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -904,7 +904,7 @@ function liveMsg(m) {
   if (sc.inputTranscription && sc.inputTranscription.text) { L.heard += cleanTx(sc.inputTranscription.text); try { coachHeard(L.heard); } catch (e) {} var hh = L.heard.trim(); if (hh) $('lheard').textContent = 'Tut heard: ' + hh.slice(-90); }
   if (sc.outputTranscription && sc.outputTranscription.text) {
     if (L.newTurn) { L.out = ''; L.newTurn = false; }
-    L.out += cleanTx(sc.outputTranscription.text); if (L.out.trim()) $('lbubble').textContent = L.out.trim(); vibeFrom(sc.outputTranscription.text);
+    L.out += cleanTx(sc.outputTranscription.text); if (L.out.trim() && !/^[.…\s]*$/.test(L.out)) $('lbubble').textContent = L.out.trim(); vibeFrom(sc.outputTranscription.text);
   }
   if (sc.modelTurn && sc.modelTurn.parts) sc.modelTurn.parts.forEach(function (p) {
     if (p.inlineData && p.inlineData.data) {
@@ -913,8 +913,8 @@ function liveMsg(m) {
     }
   });
   if (sc.turnComplete) { L.newTurn = true; var said = (L.out || '').trim(); try { coachTurn(said); } catch (e) {}
-    if (said) { tlog('tut', said); var low = said.toLowerCase();
-      if ((S.said || []).slice(-15).some(function (x) { return x.toLowerCase() === low.slice(0, 140); }) && said.length > 20) tprob('Tut repeated an earlier line word for word');
+    if (said && said !== L.lastLogged && !/^[.…\s]*$/.test(said)) { L.lastLogged = said; tlog('tut', said); var low = said.toLowerCase();
+      if ((S.said || []).slice(-16, -1).some(function (x) { return x.toLowerCase() === low.slice(0, 140); }) && said.length > 20) tprob('Tut repeated an earlier line word for word');
       if (/app note|\[app|coach message|practice step|no speech/i.test(said)) tprob('Tut read out an internal note');
       if (/3,?000 years|three thousand years|woke me|waking me/i.test(said)) tlog('note', 'Used the old "3,000 years / waking up" bit'); }
     if (said.length > 8 && said !== L.lastSaved) { L.lastSaved = said; S.said = (S.said || []).concat(said.slice(0, 140)); while (S.said.length > 40) S.said.shift(); save(); } }
@@ -969,7 +969,7 @@ function liveConnect() {
     if (L.byUser) { liveStop(''); return; }
     if (!L.ready && L.stage < 4 && !/key|permission|quota|billing|not found|unsupported location/i.test(why)) { L.stage++; liveConnect(); return; }
     if (L.ready && !L.noCC && L.ccT && Date.now() - L.ccT < 4000) { L.noCC = true; L.ready = false; liveConnect(); return; } /* model refused silent notes: reconnect and use the other way */
-    if (!L.ready && /quota|exhausted|billing/i.test(why) && L.stage < 2) { L.stage = 2; L.noSearch = true; liveConnect(); return; } /* free tier may not include web search: start without it */
+    if (!L.ready && /quota|exhausted|billing/i.test(why) && L.stage < 2) { S.noSearchT = Date.now(); save(); L.stage = 2; L.noSearch = true; liveConnect(); return; } /* free tier may not include web search: start without it */
     if (/quota|exhausted|rate/i.test(why) && L.on && (L.qTries || 0) < 3) { /* Google's per-minute limit: wait and try again by itself */
       L.qTries = (L.qTries || 0) + 1; L.ready = false; lStatus('Tut needs a minute: Google\'s free limit is used up for now. Trying again in 60 seconds...');
       setTimeout(function () { if (L.on) { L.resumed = !!L.handle; liveConnect(); } }, 60000); return; }
@@ -987,7 +987,7 @@ async function liveStart() {
   if (!window.WebSocket || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { lErr('This browser cannot use the microphone here. Open the app in Edge, Chrome or Safari.'); return; }
   wakeOn();
   logStart();
-  L.on = true; L.byUser = false; L.stage = 0; L.handle = null; L.resumed = false; L.out = ''; L.heard = ''; L.newTurn = true;
+  L.on = true; L.byUser = false; L.stage = (S.noSearchT && Date.now() - S.noSearchT < 86400000) ? 2 : 0; L.handle = null; L.resumed = false; L.out = ''; L.heard = ''; L.newTurn = true;
   $('ltalk').classList.add('live'); $('ltalklbl').textContent = 'Send Tut to sleep'; lStatus('Waking Tut...'); rigMood('shocked', 1500);
   try { L.ac = L.ac || new (window.AudioContext || window.webkitAudioContext)(); await L.ac.resume();
     if (!L.an) { L.outG = L.ac.createGain(); L.an = L.ac.createAnalyser(); L.an.fftSize = 1024; L.an.smoothingTimeConstant = 0.35; L.outG.connect(L.an); L.an.connect(L.ac.destination); } }
@@ -1615,7 +1615,7 @@ function pcStepText(s) {
   if (s.type === 'new') return 'NEW WORD for ' + who + ': say "' + s.ar + '" (' + s.tr + ') clearly, and say out loud in English that it means "' + s.en + '". Then ask ' + who + ' to say it back. Call show_phrase for it.';
   return 'MEMORY TEST for ' + who + ': ask "How do you say \'' + s.en + '\' in Masri?" Do NOT say the answer first. The answer is "' + s.tr + '" (' + s.ar + '). If they get it: 5 points. If not: give a hint, then the answer and its meaning, and move on.';
 }
-function pcSend(t) { try { tlog('coach', t); } catch (e) {} if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'COACH (practice step, follow it now): ' + t } })); PC.lastAct = Date.now(); }
+function pcSend(t) { PC.sentT = Date.now(); try { tlog('coach', t); } catch (e) {} if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'COACH (practice step, follow it now): ' + t } })); PC.lastAct = Date.now(); }
 function pcNext(prefix) {
   if (!PR.on) return;
   PC.cur = PC.q.shift(); PC.tries = 0; PC.nudges = 0; PC.meantOk = false; PC.waitNext = false;
@@ -1629,7 +1629,8 @@ function pcFirstStep() { PC.cur = PC.q.shift() || null; return PC.cur ? ' First 
 function coachTurn(said) {
   if (!PR.on) return; PC.lastAct = Date.now(); var t = String(said || '');
   if (/\bmash?ree\b|\bmashri\b|\bmashry\b/i.test(t)) { tprob('Mispronounced Masri as "Mashri"'); } if (/\bmash?ree\b|\bmashri\b|\bmashry\b/i.test(t)) pcSend('Pronunciation fix: it is "Masri" with an S, like "mass-ree" (مصري), never "Mashri". Say it right next time.');
-  if (PC.cur && PC.cur.type === 'new' && !PC.meantOk) {
+  var mentions = PC.cur && t.toLowerCase().indexOf(pcKey(PC.cur.tr).slice(0, 4)) >= 0;
+  if (PC.cur && PC.cur.type === 'new' && !PC.meantOk && mentions && Date.now() - PR.t > 4000) {
     var en = PC.cur.en.toLowerCase().split(/[ ,]+/).filter(function (w) { return w.length > 2; });
     if (/means|meaning|in english/i.test(t) || en.some(function (w) { return t.toLowerCase().indexOf(w) >= 0; })) PC.meantOk = true;
     else if (t.length > 3) { PC.meantOk = true; tprob('Practice: Tut did not say what "' + PC.cur.tr + '" means'); pcSend('You did not say what "' + PC.cur.tr + '" means. Say it now in one short line: "' + PC.cur.tr + ' means ' + PC.cur.en + '." Then let them say it back.'); return; }
@@ -1638,7 +1639,8 @@ function coachTurn(said) {
 }
 /* the kid spoke */
 function coachHeard(txt) {
-  if (!PR.on) return; PC.lastAct = Date.now();
+  if (!PR.on && !L.on) return; PC.lastAct = Date.now(); coachSpot(txt);
+  if (!PR.on) return;
   if (/what'?s next|what is next|next one|next word|another one|and now|what now|ok next|next please/i.test(String(txt).slice(-60))) { tprob('Practice stalled: kid had to ask for the next word'); L.heard = ''; pcNext('The kid asked for the next one, so go straight on. '); }
 }
 /* Tut recorded an answer */
@@ -1682,6 +1684,17 @@ $('logshare').addEventListener('click', async function () {
   var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/plain' })); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); }, 1000);
 });
 $('logclear').addEventListener('click', function () { if (!window.confirm('Delete all session logs on this phone?')) return; LOG.all = []; LOG.cur = null; logSave(); drawLogs(); });
+
+/* a kid used a word they learned before, on their own: tell Tut it is a 5-point recall */
+function coachSpot(txt) {
+  var k = L.who; if (!(k >= 0 && k < 4)) return; var bk = (S.words || {})[k] || {}, t = String(txt || '').slice(-80), tl = t.toLowerCase(), now = Date.now();
+  PC.spotted = PC.spotted || {};
+  Object.keys(bk).forEach(function (key) { var w = bk[key]; if (!w || !w.tr) return;
+    if (PC.cur && pcKey(PC.cur.tr) === pcKey(w.tr) && now - (PC.sentT || 0) < 20000) return; /* just repeating the word Tut gave */
+    var hit = (w.ar && t.indexOf(w.ar.replace(/[ً-ْ]/g, '')) >= 0) || (pcKey(w.tr).length > 3 && pcKey(tl).indexOf(pcKey(w.tr)) >= 0);
+    if (hit && now - (PC.spotted[k + key] || 0) > 60000) { PC.spotted[k + key] = now; try { tlog('note', S.names[k] + ' used "' + w.tr + '" on their own'); } catch (e) {}
+      pcSend(S.names[k] + ' just used "' + w.tr + '" (' + w.en + ') on their own, from memory. That is a recall: call record_word with result recalled, give 5 points, and say it out loud.'); } });
+}
 
 /* ---- Cartoon skin (from v2), kept in its own scope ---- */
 var CART = (function () {
