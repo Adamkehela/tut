@@ -281,7 +281,7 @@ body:not(.livefit) #verlbl{display:none}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.42</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.43</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
         <button class="stone" id="plfset" type="button">Use Face ID</button><p class="muted" id="plfmsg"></p>
       </div>
@@ -350,7 +350,7 @@ body:not(.livefit) #verlbl{display:none}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.42">v6.42</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.43">v6.43</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -934,16 +934,18 @@ function liveMsg(m) {
   if (sc.interrupted) { hush(); L.newTurn = true; }
   if (sc.inputTranscription && sc.inputTranscription.text) { L.heard += cleanTx(sc.inputTranscription.text); try { coachHeard(L.heard); } catch (e) {} var hh = L.heard.trim(); if (hh) $('lheard').textContent = 'Tut heard: ' + hh.slice(-90); }
   if (sc.outputTranscription && sc.outputTranscription.text) {
-    if (L.newTurn) { L.out = ''; L.newTurn = false; }
+    if (L.newTurn) { L.out = ''; L.raw = ''; L.drop = false; L.newTurn = false; }
+    L.raw = (L.raw || '') + sc.outputTranscription.text;
+    if (!L.drop && L.raw.length < 80 && /no[\s_-]*speech|<\s*no|^\s*[{<\[]|^\W*(silence|silencio|inaudible)\W*$/i.test(L.raw)) { L.drop = true; hush(); tlog('note', 'Stopped a non-reply ("' + L.raw.trim().slice(0, 30) + '") before it was spoken'); }
     L.out += cleanTx(sc.outputTranscription.text); if (L.out.trim() && !/^[.…\s]*$/.test(L.out) && !/the user is (asking|saying|wants)|I will not call|I have already called/i.test(L.out)) $('lbubble').textContent = L.out.trim(); vibeFrom(sc.outputTranscription.text);
   }
   if (sc.modelTurn && sc.modelTurn.parts) sc.modelTurn.parts.forEach(function (p) {
     if (p.inlineData && p.inlineData.data) {
       if (!L.playing.length) { if (L.heard.trim()) tlog('kid', (L.who >= 0 ? pName(L.who) : '?') + ': ' + L.heard.trim()); lStatus('Tut is talking.'); L.heard = ''; }
-      playPCM(p.inlineData.data, p.inlineData.mimeType);
+      if (!L.drop) playPCM(p.inlineData.data, p.inlineData.mimeType);
     }
   });
-  if (sc.turnComplete) { L.newTurn = true; var said = (L.out || '').trim(); try { coachTurn(said); } catch (e) {}
+  if (sc.turnComplete) { L.newTurn = true; var said = L.drop ? '' : (L.out || '').trim(); L.drop = false; try { coachTurn(said); } catch (e) {}
     if (said && said !== L.lastLogged && !/^[.…\s]*$/.test(said)) { L.lastLogged = said; tlog('tut', said); var low = said.toLowerCase();
       if ((S.said || []).slice(-16, -1).some(function (x) { return x.toLowerCase() === low.slice(0, 140); }) && said.length > 20) tprob('Tut repeated an earlier line word for word');
       if (/app note|\[app|coach message|practice step|no speech/i.test(said)) tprob('Tut read out an internal note');
@@ -1238,7 +1240,7 @@ async function vIdentify() {
     if (r.i >= 0 && r.p >= 0.98 && r.best.s >= 0.45 && x.length - k >= 32000) vAdd(r.i, r.raw);
     if (L.inst && r.i >= 0 && r.i < 4) { instSet(false); vNote('A kid is talking now, so the app closed instructions mode. Go back to being Tut.'); }
     if (L.inst && Date.now() - L.instT > 240000) { instSet(false); vNote('Instructions mode timed out and is closed.'); }
-    if (r.i >= 0) { L.whoT = Date.now(); if (L.who !== r.i || Date.now() - (L.whoNoteT || 0) > 8000) { var chg = L.who !== r.i; L.who = r.i; L.whoNoteT = Date.now(); if (chg) drawLive(); vNote(r.i < 4 ? 'Voice match: the kid talking right now is ' + pName(r.i) + '.' : 'Voice match: the person talking right now is ' + pName(r.i) + ', a parent, not a kid.'); } $('lheard').textContent = 'Voice: ' + pName(r.i) + ' (' + Math.round(r.p * 100) + '% sure)'; }
+    if (r.i >= 0) { L.whoT = Date.now(); if (L.who !== r.i || Date.now() - (L.whoNoteT || 0) > 60000) { var chg = L.who !== r.i; L.who = r.i; L.whoNoteT = Date.now(); if (chg) drawLive(); vNote(r.i < 4 ? 'Voice match: the kid talking right now is ' + pName(r.i) + '.' : 'Voice match: the person talking right now is ' + pName(r.i) + ', a parent, not a kid.'); } $('lheard').textContent = 'Voice: ' + pName(r.i) + ' (' + Math.round(r.p * 100) + '% sure)'; }
     else { if (L.who !== -1 && Date.now() - (L.whoT || 0) > 20000) { L.who = -1; drawLive(); vNote('The app could not tell whose voice this is. If it matters (points, names), ask who is talking.'); } try { V.unsure = (V.unsure || 0) + 1; tlog('voice', 'not sure (maybe ' + pName(r.best.i) + ' ' + Math.round(r.p * 100) + '%)'); } catch (e) {} $('lheard').textContent = 'Voice: not sure (maybe ' + pName(r.best.i) + ', ' + Math.round(r.p * 100) + '%)'; }
   } catch (e) { $('lheard').textContent = 'Voice check failed: ' + (e.message || e); }
   finally { V.busy = false; }
