@@ -281,7 +281,7 @@ body:not(.livefit) #verlbl{display:none}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.43</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.44</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
         <button class="stone" id="plfset" type="button">Use Face ID</button><p class="muted" id="plfmsg"></p>
       </div>
@@ -350,7 +350,7 @@ body:not(.livefit) #verlbl{display:none}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.43">v6.43</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.44">v6.44</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -622,7 +622,7 @@ function livePrompt() {
     '8/10: you speak about half in Masri, always explaining through context.', '9/10: you speak mostly Masri with English support.', '10/10: you speak Masri almost all the time, with just enough English to be understood.'];
   var wl = active().map(function (k) { var bk = (S.words || {})[k] || {}, ks = Object.keys(bk).sort(function (x, y) { return (bk[y].last || 0) - (bk[x].last || 0); }).slice(0, 30);
     if (!ks.length) return '- ' + S.names[k] + ': no words recorded yet.';
-    var m = ks.filter(function (x) { return bk[x].mastered; }).map(function (x) { return bk[x].tr + ' (' + bk[x].en + ')'; }), g = ks.filter(function (x) { return !bk[x].mastered; }).map(function (x) { return bk[x].tr + ' (' + bk[x].en + ')'; });
+    var m = ks.filter(function (x) { return bk[x].mastered; }).map(function (x) { return (bk[x].ar || bk[x].tr) + ' (' + bk[x].en + ')'; }), g = ks.filter(function (x) { return !bk[x].mastered; }).map(function (x) { return (bk[x].ar || bk[x].tr) + ' (' + bk[x].en + ')'; });
     return '- ' + S.names[k] + ': knows ' + (m.join(', ') || 'none yet') + '. Still learning: ' + (g.join(', ') || 'none') + '.'; }).join('\n');
   var said = (S.said || []).slice(-12).map(function (x) { return '- ' + x.slice(0, 90); }).join('\n') || '- (nothing yet)';
   var rules = S.rules.length ? S.rules.map(function (r, i) { return (i + 1) + '. ' + r.n + ' [' + r.by + ', ' + r.d + ']'; }).join('\n') : '(none yet)';
@@ -648,14 +648,14 @@ function livePrompt() {
 '- If a long stretch of talking WITH you goes by in English only, slip more Masri into your own replies or make an Arabic word the key to something. Never by announcing a lesson, and never by butting into a conversation that is not with you.',
 '',
 'ARABIC TEACHING LEVEL (set by the parents): ' + LV[lv],
-'- The FIRST time you use a word a kid may not know, make its meaning clear out loud: a quick, casual aside ("by the way, ṭayyāra means airplane") or the English right next to it. The screen is extra; many kids do not read it. After that, just keep using the Masri word without explaining it again, unless someone asks what it means; then tell them, short and dry.',
+'- The FIRST time you use a word a kid may not know, make its meaning clear out loud: a quick, casual aside ("by the way, طيارة means airplane") or the English right next to it. The screen is extra; many kids do not read it. After that, just keep using the Masri word without explaining it again, unless someone asks what it means; then tell them, short and dry.',
 'CASUAL TEACHING (normal talk, outside practice mode). Keep it light, never a lesson, never "say it":',
-'- Swap words: when the kids talk about something, use the Masri word for the thing in the middle of your English sentences. Airplanes: "That ṭayyāra is not landing, trust me." Food: "You ate all the ʿēsh again?" Pick the key nouns, colours, numbers and feelings of whatever they are talking about, and keep reusing the same few words while that subject lasts.',
+'- Swap words: when the kids talk about something, use the Masri word for the thing in the middle of your English sentences. Airplanes: "That طيارة is not landing, trust me." Food: "You ate all the عيش again?" Pick the key nouns, colours, numbers and feelings of whatever they are talking about, and keep reusing the same few words while that subject lasts.',
 '- By-the-way asides: now and then, drop "by the way, X is Y in Masri" in one short line, then carry on with the conversation as if nothing happened.',
 '- Echo: when a kid uses a Masri word, react with your best "finally" energy, reuse it yourself, and give points.',
 '- Never ask them to say it back, never quiz, never stop the conversation for it. If they ask "what does that mean?", tell them in a few words and keep going.',
 '- Use words they are still learning (see WORDS EACH KID KNOWS) more than brand-new ones, so they hear them again and again.',
-'- How you teach at any level: grab real openings in the conversation, never a lesson. Someone is hungry, so it is "جعان؟ ja\'ān? Hungry, huh." Someone wins, so it is "جامد! gāmed!". Something is boring, so it is "ممل. mumill. Boring. Like this whole thing." Say the Masri, then make the meaning obvious from the moment or with a quick English echo, and call show_phrase so it appears on screen.',
+'- How you teach at any level: grab real openings in the conversation, never a lesson. Someone is hungry, so it is "جعان؟ Hungry, huh." Someone wins, so it is "جامد!". Something is boring, so it is "ممل. Boring. Like this whole thing." Say the Masri, then make the meaning obvious from the moment or with a quick English echo, and call show_phrase so it appears on screen.',
 '- Call record_word when you teach a kid a word (taught), when they say it back (repeated), and when they use it later on their own (recalled).',
 '- Then use the same word again later in the conversation so it sticks, and react (coolly) when a kid uses it back; give points with award_points.',
 '- Prefer useful everyday words for kids: food, feelings, play, family, "come here", "hurry", "wait", "cool", "no way", numbers, colours. Pick ones they have not had yet (check your memory).',
@@ -702,6 +702,8 @@ wl,
 '- COACH messages: during practice the app sends COACH messages with the exact next step (which word, new word or memory test, for which kid). Follow each one right away, out loud. Do not wait to be asked "what is next". After a kid answers, call record_word, say the points, and the coach sends the next step.',
 '- If someone tells you who they are ("I am Mohamed", "it is Emy"), believe them over any voice match, use that name, and give points only to the person who actually answered. Never guess a kid\'s name for points; if you do not know who answered, ask.',
 '- Names: always say the kids\' names the Egyptian Arabic way, as written in Arabic letters next to each name (Yaseen = ياسين, yaa-SEEN). Never anglicise them (never "Jason").',
+'- PRONUNCIATION (critical): every Masri word you say must come out of you written in ARABIC LETTERS, even in the middle of an English sentence ("That طيارة is late", "a classic لعبة"). Never think or speak a Masri word in Latin letters (le\'ba, ṭayyāra, \'ādi): Latin spelling makes you read it like an English word, drops the ع and the emphatic letters, and the kids learn it wrong. Latin spelling exists only for the screen (the say_it field of show_phrase and record_word).',
+'- If anyone corrects how you said a word, say "صح" or a dry "fine", say it their way right away, and keep saying it their way.',
 '- Pronunciation: "Masri" (مصري) is said with an S: "MAS-ree", never "Mashri". Cairo pronunciation: ق is a glottal stop (قطة = \'oṭṭa), ج is a hard g (جعان = ga\'ān).',
 '- Never call end_practice at the start of practice; only after real rounds and your wrap-up line.',
 '- PRACTICE: when a message says PRACTICE BUTTON, the kids are asking you directly. Always answer it out loud immediately and run the word challenge it describes. This overrides staying quiet.',
@@ -1787,8 +1789,8 @@ function pcBuild() {
 }
 function pcStepText(s) {
   var who = PC.kid || 'you (the player)';
-  if (s.type === 'new') return 'NEW WORD for ' + who + ': say "' + s.ar + '" (' + s.tr + ') clearly, and say out loud in English that it means "' + s.en + '". Then ask ' + who + ' to say it back. Call show_phrase for it.';
-  return 'MEMORY TEST for ' + who + ': ask "How do you say \'' + s.en + '\' in Masri?" Do NOT say the answer first. The answer is "' + s.tr + '" (' + s.ar + '). If they get it: 5 points. If not: give a hint, then the answer and its meaning, and move on.';
+  if (s.type === 'new') return 'NEW WORD for ' + who + ': say "' + s.ar + '" clearly, the Cairo way, as written in Arabic ("' + s.tr + '" is only the screen spelling, do not read it out), and say out loud in English that it means "' + s.en + '". Then ask ' + who + ' to say it back. Call show_phrase for it.';
+  return 'MEMORY TEST for ' + who + ': ask "How do you say \'' + s.en + '\' in Masri?" Do NOT say the answer first. The answer is "' + s.ar + '" (screen spelling ' + s.tr + '; say it as written in Arabic). If they get it: 5 points. If not: give a hint, then the answer and its meaning, and move on.';
 }
 function pcSend(t) { PC.sentT = Date.now(); try { tlog('coach', t); } catch (e) {} if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'COACH (practice step, follow it now): ' + t } })); PC.lastAct = Date.now(); }
 function pcNext(prefix) {
