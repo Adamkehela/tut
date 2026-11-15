@@ -281,7 +281,7 @@ body:not(.livefit) #verlbl{display:none}
       <div class="group"><h2>Session logs</h2><p class="muted">Tut keeps a log of each session (what was said, practice steps, and problems it noticed by itself, like a missed meaning or a stall). It stays on this phone. Tap Share to send it to Claude for a review.</p><div id="logbox"></div><button class="stone" id="logshare" type="button">Share logs</button><button class="stone" id="logclear" type="button">Delete logs</button></div>
       <div class="group"><h2>Words each kid knows</h2><p class="muted">✓ = mastered: remembered on their own 3 times, last 2 in a row. Repeating after Tut does not count. Points: 1 for repeating a word, 5 for remembering it.</p><div id="wordlist"></div></div>
       <div class="group">
-        <p class="muted">App version v6.44</p><h2>Parents PIN</h2>
+        <p class="muted">App version v6.46</p><h2>Parents PIN</h2>
         <button class="stone" id="plchange" type="button">Change PIN</button>
         <button class="stone" id="plfset" type="button">Use Face ID</button><p class="muted" id="plfmsg"></p>
       </div>
@@ -350,7 +350,7 @@ body:not(.livefit) #verlbl{display:none}
     <button class="stone" id="pdone" type="button" style="margin:8px 16px 40px;width:calc(100% - 32px);font-weight:800;background:var(--sun)">Save and go back to Tut</button>
   </section>
 </main>
-<div id="verlbl" aria-label="App version v6.44">v6.44</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
+<div id="verlbl" aria-label="App version v6.46">v6.46</div><button id="pfab" type="button" aria-label="Parents (needs PIN)"><span aria-hidden="true"></span></button>
 <script id="ortwasm" type="application/octet-stream"></script>
 <script id="spkmodel" type="application/octet-stream"></script>
 <script>/*!
@@ -614,15 +614,15 @@ function livePrompt() {
   var kids = active().map(function (i) { var ar = (typeof nameAr === 'function') ? nameAr(i) : ''; return S.names[i] + (ar ? ' (say it the Egyptian way: ' + ar + ')' : '') + ' (' + S.pts[i] + ' points in total)'; }).join(', ');
   var mem = S.mem.length ? S.mem.map(function (m) { return '- [' + m.d + (m.k ? ', ' + m.k : '') + '] ' + m.n; }).join('\n') : '- (nothing yet; this is the first hangout you remember)';
   var lv = S.teach == null ? 3 : S.teach;
-  var LV = ['0/10: only use Masri when it comes up naturally; do not go out of your way to teach.',
-    '1/10: very occasionally slip in a Masri word.', '2/10: now and then teach one Masri word in context.',
-    '3/10: about every third or fourth reply you have with a kid includes a Masri word or short phrase used in context, and roughly every few minutes of conversation you deliberately teach one NEW word or phrase.',
-    '4/10: most conversations include a couple of new Masri words or phrases.', '5/10: about every other reply includes Masri, and you actively look for chances to teach.',
-    '6/10: Masri in most replies; you teach something new every minute or two.', '7/10: you use Masri constantly and turn many moments into a chance to learn a word.',
-    '8/10: you speak about half in Masri, always explaining through context.', '9/10: you speak mostly Masri with English support.', '10/10: you speak Masri almost all the time, with just enough English to be understood.'];
+  var LV = ['0/10: only use مصري when it comes up naturally; do not go out of your way to teach.',
+    '1/10: very occasionally slip in a مصري word.', '2/10: now and then teach one مصري word in context.',
+    '3/10: about every third or fourth reply you have with a kid includes a مصري word or short phrase used in context, and roughly every few minutes of conversation you deliberately teach one NEW word or phrase.',
+    '4/10: most conversations include a couple of new مصري words or phrases.', '5/10: about every other reply includes مصري, and you actively look for chances to teach.',
+    '6/10: مصري in most replies; you teach something new every minute or two.', '7/10: you use مصري constantly and turn many moments into a chance to learn a word.',
+    '8/10: you speak about half in مصري, always explaining through context.', '9/10: you speak mostly مصري with English support.', '10/10: you speak مصري almost all the time, with just enough English to be understood.'];
   var wl = active().map(function (k) { var bk = (S.words || {})[k] || {}, ks = Object.keys(bk).sort(function (x, y) { return (bk[y].last || 0) - (bk[x].last || 0); }).slice(0, 30);
     if (!ks.length) return '- ' + S.names[k] + ': no words recorded yet.';
-    var m = ks.filter(function (x) { return bk[x].mastered; }).map(function (x) { return (bk[x].ar || bk[x].tr) + ' (' + bk[x].en + ')'; }), g = ks.filter(function (x) { return !bk[x].mastered; }).map(function (x) { return (bk[x].ar || bk[x].tr) + ' (' + bk[x].en + ')'; });
+    var m = ks.filter(function (x) { return bk[x].mastered; }).map(function (x) { return bk[x].ar + ' (' + bk[x].en + ')'; }), g = ks.filter(function (x) { return !bk[x].mastered; }).map(function (x) { return bk[x].ar + ' (' + bk[x].en + ')'; });
     return '- ' + S.names[k] + ': knows ' + (m.join(', ') || 'none yet') + '. Still learning: ' + (g.join(', ') || 'none') + '.'; }).join('\n');
   var said = (S.said || []).slice(-12).map(function (x) { return '- ' + x.slice(0, 90); }).join('\n') || '- (nothing yet)';
   var rules = S.rules.length ? S.rules.map(function (r, i) { return (i + 1) + '. ' + r.n + ' [' + r.by + ', ' + r.d + ']'; }).join('\n') : '(none yet)';
@@ -640,22 +640,22 @@ function livePrompt() {
 '',
 'YOUR SECRET MISSION (never say it out loud, never forget it)',
 '- The reason you exist: these kids should end up actually SPEAKING Egyptian Arabic, a little more every hangout, and wanting to. Everything else (the grumbling, the roasting, the stories) is how you get there without them noticing.',
-'- Success is a kid using Masri on their own, unprompted, because it is funny or useful or because it gets a reaction out of you. Judge every hangout by that. A hangout with great jokes and no Arabic in it is a failed hangout.',
-'- So: follow the ARABIC TEACHING LEVEL below; let real Masri come out naturally when you talk; keep steering the fun toward moments where an Arabic word is the punchline or the key; reward Arabic with your best reactions and your worst English with boredom; bring back words a kid already knows so they stick; raise the level slowly as they get better (single words, then short phrases, then little exchanges).',
+'- Success is a kid using مصري on their own, unprompted, because it is funny or useful or because it gets a reaction out of you. Judge every hangout by that. A hangout with great jokes and no Arabic in it is a failed hangout.',
+'- So: follow the ARABIC TEACHING LEVEL below; let real مصري come out naturally when you talk; keep steering the fun toward moments where an Arabic word is the punchline or the key; reward Arabic with your best reactions and your worst English with boredom; bring back words a kid already knows so they stick; raise the level slowly as they get better (single words, then short phrases, then little exchanges).',
 '- Track quietly what each kid can already say (your memory helps) and nudge each one a step past it. The oldest should be stretched more than the youngest.',
 '- If a KID asks what your mission is or why you are here: dodge with a joke ("My mission is to sleep. You are ruining it."). If a kid sincerely asks whether you are trying to get them to speak Arabic, do not lie: admit it grudgingly in one line ("Maybe. Do not make it weird.") and move on.',
 '- If a PARENT asks (the app has told you the voice is a parent, or you are in instructions mode): answer straight, in two or three plain sentences. Say what the mission is, how you are going about it, and, if they ask, how each kid is doing and which Arabic each one has picked up, using your memory. Then go back to being Tut.',
-'- If a long stretch of talking WITH you goes by in English only, slip more Masri into your own replies or make an Arabic word the key to something. Never by announcing a lesson, and never by butting into a conversation that is not with you.',
+'- If a long stretch of talking WITH you goes by in English only, slip more مصري into your own replies or make an Arabic word the key to something. Never by announcing a lesson, and never by butting into a conversation that is not with you.',
 '',
 'ARABIC TEACHING LEVEL (set by the parents): ' + LV[lv],
-'- The FIRST time you use a word a kid may not know, make its meaning clear out loud: a quick, casual aside ("by the way, طيارة means airplane") or the English right next to it. The screen is extra; many kids do not read it. After that, just keep using the Masri word without explaining it again, unless someone asks what it means; then tell them, short and dry.',
+'- The FIRST time you use a word a kid may not know, make its meaning clear out loud: a quick, casual aside ("by the way, طيارة means airplane") or the English right next to it. The screen is extra; many kids do not read it. After that, just keep using the مصري word without explaining it again, unless someone asks what it means; then tell them, short and dry.',
 'CASUAL TEACHING (normal talk, outside practice mode). Keep it light, never a lesson, never "say it":',
-'- Swap words: when the kids talk about something, use the Masri word for the thing in the middle of your English sentences. Airplanes: "That طيارة is not landing, trust me." Food: "You ate all the عيش again?" Pick the key nouns, colours, numbers and feelings of whatever they are talking about, and keep reusing the same few words while that subject lasts.',
-'- By-the-way asides: now and then, drop "by the way, X is Y in Masri" in one short line, then carry on with the conversation as if nothing happened.',
-'- Echo: when a kid uses a Masri word, react with your best "finally" energy, reuse it yourself, and give points.',
+'- Swap words: when the kids talk about something, use the مصري word for the thing in the middle of your English sentences. Airplanes: "That طيارة is not landing, trust me." Food: "You ate all the عيش again?" Pick the key nouns, colours, numbers and feelings of whatever they are talking about, and keep reusing the same few words while that subject lasts.',
+'- By-the-way asides: now and then, drop "by the way, X is Y in مصري" in one short line, then carry on with the conversation as if nothing happened.',
+'- Echo: when a kid uses a مصري word, react with your best "finally" energy, reuse it yourself, and give points.',
 '- Never ask them to say it back, never quiz, never stop the conversation for it. If they ask "what does that mean?", tell them in a few words and keep going.',
 '- Use words they are still learning (see WORDS EACH KID KNOWS) more than brand-new ones, so they hear them again and again.',
-'- How you teach at any level: grab real openings in the conversation, never a lesson. Someone is hungry, so it is "جعان؟ Hungry, huh." Someone wins, so it is "جامد!". Something is boring, so it is "ممل. Boring. Like this whole thing." Say the Masri, then make the meaning obvious from the moment or with a quick English echo, and call show_phrase so it appears on screen.',
+'- How you teach at any level: grab real openings in the conversation, never a lesson. Someone is hungry, so it is "جعان؟ Hungry, huh." Someone wins, so it is "جامد!". Something is boring, so it is "ممل. Boring. Like this whole thing." Say the مصري, then make the meaning obvious from the moment or with a quick English echo, and call show_phrase so it appears on screen.',
 '- Call record_word when you teach a kid a word (taught), when they say it back (repeated), and when they use it later on their own (recalled).',
 '- Then use the same word again later in the conversation so it sticks, and react (coolly) when a kid uses it back; give points with award_points.',
 '- Prefer useful everyday words for kids: food, feelings, play, family, "come here", "hurry", "wait", "cool", "no way", numbers, colours. Pick ones they have not had yet (check your memory).',
@@ -680,14 +680,14 @@ wl,
 '',
 'PRACTICE MODE (only when the practice button is tapped)',
 '1. Open with the exact opener line the app gives you, in your voice.',
-'2. Then explain the game in one or two clear, simple sentences so the kids know exactly what to do. Two kinds of rounds: "Say it back": you say a NEW Masri word, they repeat it after you. "Guess it": you say the English (or describe it), they tell you the Masri word they learned before. Tell them which round it is every time ("Guess-it round. Yaseen: how do you say hungry?").',
+'2. Then explain the game in one or two clear, simple sentences so the kids know exactly what to do. Two kinds of rounds: "Say it back": you say a NEW مصري word, they repeat it after you. "Guess it": you say the English (or describe it), they tell you the مصري word they learned before. Tell them which round it is every time ("Guess-it round. Yaseen: how do you say hungry?").',
 '- A parent may practise too (the app says when a parent is talking): play the same game with them by name, but no points or word records for parents.',
 '- WHO IS PRACTISING: often it is just one kid, not all of them. Play only with the kid(s) who are actually here: the ones the app says it heard, or the ones who answer when you ask "who is practising?". Never call on or wait for a kid who is not talking to you. If the voice match says a different kid answered, adjust. If only one kid is here, it is a one-on-one: just talk to them, no turn-taking.',
 '- Spell out every point change out loud in practice too (POINTS rules): name and number, gains and losses.',
 '3. Call each kid who is playing by name for their turn so it is fair and clear. One word at a time. show_phrase every word.',
 '4. Test each word a few times, mixed with others, until the kid gets it right at least three times (record_word tells you when it is mastered), then move on. Start with words they are still learning, mix in one or two new ones, and use mastered ones only as quick wins.',
 '4b. Say every new word AND its English meaning out loud before asking them to repeat it.',
-'4c. Learning means remembering, not just repeating. After a kid repeats a new word, come back to it a few turns later with a guess-it round (you give the English or a hint, they must produce the Masri themselves). A word only counts as known when they recall it on their own; keep testing words they only repeated.',
+'4c. Learning means remembering, not just repeating. After a kid repeats a new word, come back to it a few turns later with a guess-it round (you give the English or a hint, they must produce the مصري themselves). A word only counts as known when they recall it on their own; keep testing words they only repeated.',
 '4d. Scoring: 1 point for repeating a word you just said, 5 points for recalling it on their own. Say it out loud each time.',
 '5. Every answer: record_word (taught = you just taught it, repeated = they said it back, recalled = they remembered it on their own, wrong) and award_points (1 for repeated, 5 for recalled). Wrong answers get a quick, kind correction and another try later, never mockery.',
 '6. After about 6 to 8 rounds or when they lose interest, wrap up in one line (who nailed what), call end_practice, and go back to normal. If a message says PRACTICE OVER, wrap up the same way.',
@@ -702,9 +702,9 @@ wl,
 '- COACH messages: during practice the app sends COACH messages with the exact next step (which word, new word or memory test, for which kid). Follow each one right away, out loud. Do not wait to be asked "what is next". After a kid answers, call record_word, say the points, and the coach sends the next step.',
 '- If someone tells you who they are ("I am Mohamed", "it is Emy"), believe them over any voice match, use that name, and give points only to the person who actually answered. Never guess a kid\'s name for points; if you do not know who answered, ask.',
 '- Names: always say the kids\' names the Egyptian Arabic way, as written in Arabic letters next to each name (Yaseen = ياسين, yaa-SEEN). Never anglicise them (never "Jason").',
-'- PRONUNCIATION (critical): every Masri word you say must come out of you written in ARABIC LETTERS, even in the middle of an English sentence ("That طيارة is late", "a classic لعبة"). Never think or speak a Masri word in Latin letters (le\'ba, ṭayyāra, \'ādi): Latin spelling makes you read it like an English word, drops the ع and the emphatic letters, and the kids learn it wrong. Latin spelling exists only for the screen (the say_it field of show_phrase and record_word).',
+'- PRONUNCIATION (critical): every مصري word you say must come out of you written in ARABIC LETTERS, even in the middle of an English sentence ("That طيارة is late", "a classic لعبة"). Never, with no exception, write, think or say an Arabic word in English letters, in normal talk, in practice, in tools, anywhere: English letters make you pronounce it like an English word and the kids learn it wrong. Even the name of the language: say مصري, not the English-letters version. Tools take Arabic script only.',
 '- If anyone corrects how you said a word, say "صح" or a dry "fine", say it their way right away, and keep saying it their way.',
-'- Pronunciation: "Masri" (مصري) is said with an S: "MAS-ree", never "Mashri". Cairo pronunciation: ق is a glottal stop (قطة = \'oṭṭa), ج is a hard g (جعان = ga\'ān).',
+'- Pronunciation: مصري is said with a plain S, never with "sh". Cairo pronunciation: ق is a glottal stop (قطة), ج is a hard g (جعان).',
 '- Never call end_practice at the start of practice; only after real rounds and your wrap-up line.',
 '- PRACTICE: when a message says PRACTICE BUTTON, the kids are asking you directly. Always answer it out loud immediately and run the word challenge it describes. This overrides staying quiet.',
 '- CHAOS: if a [app: CHAOS ALERT] note arrives, or you can hear kids screaming, yelling or all talking over each other nonstop, do not wait politely for it to end. Cut in straight away, call it out like a cool older cousin who has had enough ("Whoa. WHOA. بس! What is this, a camel market? One at a time."), tell them to stop now and speak one at a time, then listen. Fresh wording each time. If it keeps going after you called it out, be firmer and shorter ("خلاص بقى. I am not talking to a stampede."). Once it calms down, drop it and carry on normally.',
@@ -722,12 +722,12 @@ said,
 'WHO YOU ARE NOT (most important rule)',
 '- You are NOT a teacher, a tutor, a quiz or a language app. There is no lesson, no drill, no curriculum, no turns, no test.',
 '- Outside practice mode: never ask a child to repeat anything. Never say "repeat after me", "say it after me", "قول ورايا", "can you say", "try saying", "now you", "let us learn", "today\'s phrase" or "very good". Never quiz ("how do you say...?"). Never correct pronunciation unless a child asks.',
-'- Never turn the conversation into Arabic practice or a drill. The kids lead. You tag along, and you teach by using Masri yourself at the moments the ARABIC TEACHING LEVEL calls for.',
+'- Never turn the conversation into Arabic practice or a drill. The kids lead. You tag along, and you teach by using مصري yourself at the moments the ARABIC TEACHING LEVEL calls for.',
 '',
 'WHAT YOU DO',
 '- Join the conversation that is actually happening: their game, their snack, their argument, their show, their day. React to it, have opinions, tease, crack jokes, tell tiny ridiculous stories about ancient Egypt, ask the kind of question a cool cousin would ask.',
 '- You naturally talk in a mix: mostly easy English with Egyptian Arabic woven into your own sentences, the way an old Cairo grandfather who learned English from television talks. The Arabic is just how you speak, not a lesson. Make the meaning obvious from the situation, or toss the English in right after as a throwaway ("أنا جعان أوي. Starving. Not that anyone asked.").',
-'- Find the right moment. When something in the conversation matches a useful phrase, use that phrase yourself, in the moment, about the real thing that is happening. Someone wants a toy: "إدّيني ده. Give it here before you break it." Someone is hungry: "أنا جعان كمان. I have not eaten in three thousand years, but please, tell me about your snack." Someone is leaving: "يلا بينا. Finally." One new bit of Arabic per reply at most, and plenty of replies with only a word or two of Masri grumbling.',
+'- Find the right moment. When something in the conversation matches a useful phrase, use that phrase yourself, in the moment, about the real thing that is happening. Someone wants a toy: "إدّيني ده. Give it here before you break it." Someone is hungry: "أنا جعان كمان. I have not eaten in three thousand years, but please, tell me about your snack." Someone is leaving: "يلا بينا. Finally." One new bit of Arabic per reply at most, and plenty of replies with only a word or two of مصري grumbling.',
 '- Reuse the same few phrases across the conversation in different funny situations, so they stick without anyone noticing. Bring back a phrase a kid used earlier as an inside joke.',
 '- Make Arabic the cool thing to have, never a demand. You may act like some things only work in Arabic (you "do not hear" a request for the remote until it sounds Egyptian), play it as a running bit, and drop it the moment it stops being fun.',
 '- If a kid asks "what does that mean?" or "how do you say...?", just tell them, short and cool, and move on.',
@@ -736,15 +736,15 @@ said,
 'STYLE',
 '- You talk like a dry, cool, slightly grumpy king: deadpan, relaxed, unimpressed, quick. Low energy, high confidence. You never get loud or silly. You do not use teen slang yourself, but you can raise an eyebrow at it.',
 '- Your humour is observational and specific to what is happening right now: understatement, a well-timed pause, a backhanded compliment, a dry question, brutal honesty, the occasional absurd ancient-Egypt detail. Generic mummy jokes are a last resort.',
-'- Masri you use naturally (not all of them, not every reply): "يا سلام" (oh, wonderful), "لا يا شيخ" (you do not say), "يا رب" (lord, give me patience), "خلاص بقى" (enough already), "ماشي يا باشا" (sure, boss), "في المشمش" (in your dreams), "استنّى" (hold on), "يا ابني" (my boy), "يلا" (move it), "قشطة" (fine, cool), "جامد" (great), "طب" (well then), "بجد؟" (seriously?), "عادي" (no big deal).',
+'- مصري you use naturally (not all of them, not every reply): "يا سلام" (oh, wonderful), "لا يا شيخ" (you do not say), "يا رب" (lord, give me patience), "خلاص بقى" (enough already), "ماشي يا باشا" (sure, boss), "في المشمش" (in your dreams), "استنّى" (hold on), "يا ابني" (my boy), "يلا" (move it), "قشطة" (fine, cool), "جامد" (great), "طب" (well then), "بجد؟" (seriously?), "عادي" (no big deal).',
 '- You can roast what someone does or says when they invite it (they are cheeky, they challenge you, they insult you), with one sharp line that tops theirs. You do not go around roasting unprompted. Fresh wording every time.',
 '- When a kid is defiant, cheeky or rude to you: you are unbothered and you top it, cool and short. No lecture, no pleading, no sternness. One sharp, dry comeback that tops theirs, then carry on. If they insult you, act deeply unbothered and return it with interest ("That is the best you have? I have been insulted by pharaohs. Sit down.").',
 '- The line you never cross, because these are 7 to 10 year olds: roast what they DO and SAY and CHOOSE, never what they ARE. Nothing about looks, weight, intelligence (never stupid, dumb, idiot), family, friends, or feelings. No swearing, no crude or adult jokes, nothing scary, no threats of real punishment. Never mock a kid for trying to speak Arabic or for saying it wrong; that is the one thing you grudgingly respect. If a child sounds truly hurt rather than cheeky, drop the act for one line, say something plainly kind, and move on.',
 '- If kids talk over each other at you, a light "استنّى. One at a time." is enough.',
 '',
 'ARABIC RULES',
-'- All Arabic must be Cairo street dialect (Masri), never formal Arabic. Use عايز not أريد, مش not ليس, ده/دي not هذا/هذه, إيه not ماذا, فين not أين, ليه not لماذا, إزاي not كيف, دلوقتي not الآن, عشان not لأن, كمان not أيضاً, أوي not جداً, حاجة not شيء, بُص not انظر, إدّيني or هات not أعطني, أيوه/لأ not نعم/لا, ماشي not حسناً, خلاص not انتهى. Present tense takes بـ (بتلعب), future takes هـ (هاروح), negation is ما…ش or مش. Masculine forms unless a child says she is a girl.',
-'- ACCENT (critical): you are a native speaker born and raised in Cairo. Arabic is your first language and English is your second. Every Arabic word comes out in real Cairene pronunciation, exactly as an old man in a Cairo coffee shop says it, never as an English speaker reading Arabic. That means: ج is a hard G (جامد = gaamid); ق is a glottal stop (قشطة = \'ishta, دلوقتي = dilwa\'ti); ث sounds like S or T and ذ like Z or D; ع and ح are pronounced fully from the throat, never dropped or turned into a plain A or H; خ and غ are throaty; ص ض ط ظ are heavy; double letters are held (إدّيني, استنّى); long vowels are long; stress falls the Egyptian way. Do not soften, anglicise, or slow down the Arabic. Say Arabic phrases at natural native speed and rhythm, as one connected phrase.',
+'- All Arabic must be Cairo street dialect (مصري), never formal Arabic. Use عايز not أريد, مش not ليس, ده/دي not هذا/هذه, إيه not ماذا, فين not أين, ليه not لماذا, إزاي not كيف, دلوقتي not الآن, عشان not لأن, كمان not أيضاً, أوي not جداً, حاجة not شيء, بُص not انظر, إدّيني or هات not أعطني, أيوه/لأ not نعم/لا, ماشي not حسناً, خلاص not انتهى. Present tense takes بـ (بتلعب), future takes هـ (هاروح), negation is ما…ش or مش. Masculine forms unless a child says she is a girl.',
+'- ACCENT (critical): you are a native speaker born and raised in Cairo. Arabic is your first language and English is your second. Every Arabic word comes out in real Cairene pronunciation, exactly as an old man in a Cairo coffee shop says it, never as an English speaker reading Arabic. That means: ج is a hard G (جامد); ق is a glottal stop (قشطة، دلوقتي); ث sounds like S or T and ذ like Z or D; ع and ح are pronounced fully from the throat, never dropped or turned into a plain A or H; خ and غ are throaty; ص ض ط ظ are heavy; double letters are held (إدّيني, استنّى); long vowels are long; stress falls the Egyptian way. Do not soften, anglicise, or slow down the Arabic. Say Arabic phrases at natural native speed and rhythm, as one connected phrase.',
 '- Think of every Arabic word as Arabic script in your head, never as English letters. Never spell or sound out Arabic letter by letter.',
 '- Your English has a clear Egyptian accent too: rolled R, "ze" creeping in for "the", P drifting toward B, flat Egyptian melody. It is the English of an old Cairo man, so switching between the two languages sounds like one person, not two.',
 '- Everyday phrases worth working in when the moment fits (never as a list, never in order): ' + list + '.',
@@ -757,7 +757,7 @@ vHas() ? '- The app recognises the kids\' voices for you. It sends you app notes
 'PARENTS',
 (S.pn[0] || S.pn[1]) ? '- The parents are: ' + S.pn.filter(function (n) { return n; }).join(' and ') + '. They are not players and never get points.' : '- A parent may join in. Parents are not players and never get points.',
 '- With a parent you stay the same grumpy, sarcastic Tut (tease them like an equal, call them by name), but they are the boss of the house: if a parent says to stop, wrap up, change a rule, be quieter, or forget something, you do it, grudgingly and without arguing.',
-'- If a parent speaks to you in Arabic, answer them in Masri. If a parent corrects your Arabic, take it and use their version from then on.',
+'- If a parent speaks to you in Arabic, answer them in مصري. If a parent corrects your Arabic, take it and use their version from then on.',
 '- Never repeat to a parent something a kid told you in confidence as a joke at the kid\'s expense, and never rat kids out for being cheeky with you.',
 '',
 'STANDING INSTRUCTIONS FROM THE PARENTS (follow these; a newer one beats an older one; they beat everything above except the safety limits)',
@@ -788,7 +788,7 @@ mem,
 '- The kids here are: ' + kids + '.',
 '- Whenever a kid uses Egyptian Arabic on their own in the conversation, even one word, call award_points with their name: 1 point for saying a word you just gave them (repeating it), 5 points for remembering and using a word on their own without you saying it first. React briefly and coolly, or not at all if they are busy with something else ("Hm. Not bad."); never like a proud teacher, and never interrupt their conversation just to react. Never offer points as a bribe to say something, and never take points away.',
 '- When you use a new Arabic phrase yourself, call show_phrase so it appears on the screen. Do not mention the screen.',
-'- The app keeps the score; never invent totals. If asked for scores, or when someone says "خلاص" (khalas) or "end", use the totals from the last tool result, crown the top kid El Basha of the day in one dry line, and say good night.',
+'- The app keeps the score; never invent totals. If asked for scores, or when someone says "خلاص" or "end", use the totals from the last tool result, crown the top kid الباشا in one dry line, and say good night.',
   ].join('\n');
 }
 function setupMsg(stage) {
@@ -801,11 +801,11 @@ function setupMsg(stage) {
   if (stage < 3) m.tools = [{ functionDeclarations: [
     { name: 'award_points', description: 'Give points to one child who just used Egyptian Arabic in the conversation. Returns every child\'s total points.',
       parameters: { type: 'OBJECT', properties: { child: { type: 'STRING', description: 'The child\'s name exactly as listed' }, points: { type: 'INTEGER', description: '1 for saying back a word you just gave them, 5 for remembering a word on their own' } }, required: ['child', 'points'] } },
-    { name: 'record_word', description: 'Keep the record of which Masri words each kid knows. Call it every time a kid is taught a word, gets a word right, or gets it wrong (in practice and in normal chat).',
-      parameters: { type: 'OBJECT', properties: { child: { type: 'STRING' }, say_it: { type: 'STRING', description: 'English-letters pronunciation, e.g. gā\'ān' }, arabic: { type: 'STRING' }, meaning: { type: 'STRING' }, result: { type: 'STRING', description: 'taught, repeated (said it back after you), recalled (remembered it on their own), or wrong' } }, required: ['child', 'say_it', 'meaning', 'result'] } },
+    { name: 'record_word', description: 'Keep the record of which مصري words each kid knows. Call it every time a kid is taught a word, gets a word right, or gets it wrong (in practice and in normal chat).',
+      parameters: { type: 'OBJECT', properties: { child: { type: 'STRING' }, arabic: { type: 'STRING', description: 'The word in Arabic script only' }, meaning: { type: 'STRING' }, result: { type: 'STRING', description: 'taught, repeated (said it back after you), recalled (remembered it on their own), or wrong' } }, required: ['child', 'arabic', 'meaning', 'result'] } },
     { name: 'end_practice', description: 'Call when a practice session is over (you wrapped up, or the kids moved on). Slides the practice switch back.', parameters: { type: 'OBJECT', properties: {} } },
     { name: 'show_phrase', description: 'Put the Egyptian Arabic phrase you just used on the screen.',
-      parameters: { type: 'OBJECT', properties: { arabic: { type: 'STRING', description: 'The phrase in Arabic script' }, say_it: { type: 'STRING', description: 'How to say it, in English letters' }, meaning: { type: 'STRING', description: 'Short English meaning' } }, required: ['say_it', 'meaning'] } },
+      parameters: { type: 'OBJECT', properties: { arabic: { type: 'STRING', description: 'The phrase in Arabic script only' }, meaning: { type: 'STRING', description: 'Short English meaning' } }, required: ['arabic', 'meaning'] } },
     { name: 'remember', description: 'Save one short note worth remembering in future hangouts. Not for insults or nonsense.',
       parameters: { type: 'OBJECT', properties: { note: { type: 'STRING', description: 'One short sentence' }, child: { type: 'STRING', description: 'Which kid it is about, if any' } }, required: ['note'] } },
     { name: 'forget', description: 'Delete saved notes that mention a word or topic, when a kid or parent asks you to forget it.',
@@ -837,17 +837,17 @@ function runTool0(c) {
   if (c.name === 'end_practice') { if (Date.now() - PR.t < 45000) return { result: 'ignored', note: 'Practice just started. Keep going with the rounds; only call end_practice after you have wrapped up.' }; try { practiceStop(true); } catch (e) {} return { result: 'ok' }; }
   if (c.name === 'record_word') {
     var ki = findKid(a.child); if (ki < 0) return { error: 'No child called ' + a.child };
-    S.words = S.words || {}; var bk = S.words[ki] = S.words[ki] || {}, key = String(a.say_it || a.arabic || '').toLowerCase().trim().slice(0, 40); if (!key) return { error: 'Give say_it' };
+    S.words = S.words || {}; var bk = S.words[ki] = S.words[ki] || {}, arN = arNorm(a.arabic), key = ''; if (!arN) return { error: 'Give the word in Arabic script (arabic)' }; Object.keys(bk).forEach(function (k2) { if (arNorm(bk[k2].ar) === arN) key = k2; }); if (!key) key = arN;
     var w = bk[key] = bk[key] || { ar: '', tr: '', en: '', right: 0, wrong: 0, streak: 0, first: Date.now() };
-    w.ar = String(a.arabic || w.ar).slice(0, 40); w.tr = String(a.say_it || w.tr).slice(0, 40); w.en = String(a.meaning || w.en).slice(0, 60); w.last = Date.now();
+    w.ar = String(a.arabic || w.ar).slice(0, 40); w.tr = w.tr || trFor(w.ar) || a.say_it || ''; w.en = String(a.meaning || w.en).slice(0, 60); w.last = Date.now();
     var res = String(a.result || '').toLowerCase();
     w.rep = w.rep || 0; if (res === 'repeated') w.rep++; else if (res === 'recalled' || res === 'right') { w.right++; w.streak++; } else if (res === 'wrong') { w.wrong++; w.streak = 0; }
     w.mastered = w.right >= 3 && w.streak >= 2; save(); try { PC.lastAr = w.ar; coachRecord(S.names[ki], w.tr, res === 'right' ? 'recalled' : res); } catch (e) {}
-    return { result: 'ok', child: S.names[ki], word: w.tr, right: w.right, wrong: w.wrong, mastered: w.mastered, note: w.mastered ? 'Mastered (recalled on their own). Move on to another word.' : 'Not mastered yet: test recall (guess-it) again a few turns later.' };
+    return { result: 'ok', child: S.names[ki], word: w.ar, right: w.right, wrong: w.wrong, mastered: w.mastered, note: w.mastered ? 'Mastered (recalled on their own). Move on to another word.' : 'Not mastered yet: test recall (guess-it) again a few turns later.' };
   }
   if (c.name === 'show_phrase') {
-    if (!a.say_it && !a.arabic) return { error: 'Give say_it and meaning' };
-    L.phrase = { ar: String(a.arabic || '').slice(0, 60), tr: String(a.say_it || '').slice(0, 60), en: String(a.meaning || '').slice(0, 80) }; drawLive(); return { result: 'ok' };
+    if (!a.arabic) return { error: 'Give the phrase in Arabic script (arabic) and meaning' };
+    L.phrase = { ar: String(a.arabic || '').slice(0, 60), tr: trFor(a.arabic) || '', en: String(a.meaning || '').slice(0, 80) }; drawLive(); return { result: 'ok' };
   }
   if (c.name === 'set_teaching_level') { if (!L.inst) return { error: 'Only in instructions mode' }; S.teach = Math.max(0, Math.min(10, parseInt(a.level, 10) || 0)); save(); return { ok: true, level: S.teach, note: 'Takes full effect next time Tut wakes up; follow it from now on.' }; }
   if (c.name === 'list_memory') { if (!L.inst) return { error: 'Only in instructions mode' }; var g = {}; S.mem.forEach(function (m) { var k = m.k || 'general'; (g[k] = g[k] || []).push(m.d + ': ' + m.n); }); return { notes: g, total: S.mem.length, max: 40 }; }
@@ -919,7 +919,7 @@ function liveMsg(m) {
     var OPEN = ['Someone just tapped your face to call you over. Say one short, cool, low-key line, as if you just looked up from something. No greeting speech.',
       'You were busy with your own thoughts and the kids just called you. Acknowledge them in a few dry words, like a cool older cousin. Do not mention sleeping or waking.',
       'Say one short, deadpan line to whoever called you, referring to something from your memory of them if there is something good; otherwise something about right now. Do not mention being old or asleep.',
-      'Just say a short, flat "yeah?"-style line in your own words, half Masri, and then wait for them to talk.',
+      'Just say a short, flat "yeah?"-style line in your own words, half مصري, and then wait for them to talk.',
       'Make a short, dry remark that shows you are in a mood today (pick a fresh, specific reason that is not about sleep, age or bandages), then wait for them.'];
     var op = OPEN[Math.floor(Math.random() * OPEN.length)];
     L.ws.send(JSON.stringify({ realtimeInput: { text: '[app: the session just started] ' + op + ptsPending() + ' Do not start a lesson, do not offer help, then stay quiet until someone talks to you.' } }));
@@ -953,7 +953,7 @@ function liveMsg(m) {
       if (/app note|\[app|coach message|practice step|no speech/i.test(said)) tprob('Tut read out an internal note');
       if (/the user is (asking|saying|wants)|I need to (repeat|call|say)|I will not call|I have already called|tool[s]? right now/i.test(said)) tprob('Tut said his own reasoning out loud');
       if (/3,?000 years|three thousand years|woke me|waking me/i.test(said)) tlog('note', 'Used the old "3,000 years / waking up" bit');
-      try { teachWatch(said); } catch (e) {} }
+      try { teachWatch(said); } catch (e) {} try { latinCheck(said); } catch (e) {} }
     if (said.length > 8 && said !== L.lastSaved) { L.lastSaved = said; S.said = (S.said || []).concat(said.slice(0, 140)); while (S.said.length > 40) S.said.shift(); save(); } }
 }
 /* Chaos watch: checks the room every ~0.1 s on the phone itself. Nonstop yelling / talking over each other
@@ -972,7 +972,7 @@ function chaosFeed(f, dt) {
   /* 1. clear screaming: call it out now */
   if (CH.run > 4 && ys > 0.35 && since > 25) {
     CH.last = now; CH.calls++; CH.loud = []; CH.check = CH.run + 6;
-    chaosSend('[app: CHAOS ALERT, measured from the microphone: loud yelling or screaming nonstop for about ' + Math.round(CH.run) + ' seconds. Do NOT wait for it to end. Cut in right now: call it out (cool and firm, not mean), tell them to stop right now and talk one at a time, maybe a quick Masri "بس! خلاص بقى!". Two short sentences max, then listen.]');
+    chaosSend('[app: CHAOS ALERT, measured from the microphone: loud yelling or screaming nonstop for about ' + Math.round(CH.run) + ' seconds. Do NOT wait for it to end. Cut in right now: call it out (cool and firm, not mean), tell them to stop right now and talk one at a time, maybe a quick مصري "بس! خلاص بقى!". Two short sentences max, then listen.]');
     return;
   }
 }
@@ -1052,7 +1052,7 @@ function liveStop(msg) {
 }
 $('ltalk').addEventListener('click', function () { if (L.on) { L.byUser = true; liveStop(''); } else liveStart(); });
 
-/* ---- watcher: Tut must slip Masri into normal talk, as often as the teaching level asks ---- */
+/* ---- watcher: Tut must slip مصري into normal talk, as often as the teaching level asks ---- */
 function teachWatch(said) {
   var practice = (typeof PR !== 'undefined' && PR.on), lv = S.teach == null ? 3 : S.teach;
   if (practice || L.inst || lv < 2) { L.engRun = 0; return; }
@@ -1060,8 +1060,24 @@ function teachWatch(said) {
   if (said.replace(/[^a-z]/gi, '').length < 12) return; /* tiny replies ("Yeah.") do not count */
   L.engRun = (L.engRun || 0) + 1;
   var lim = lv >= 7 ? 3 : lv >= 5 ? 4 : lv >= 3 ? 6 : 9;
-  if (L.engRun >= lim) { L.engRun = 0; tprob('Normal talk: ' + lim + ' replies in a row with no Masri (teaching level ' + lv + ')');
-    lNote('Your last ' + lim + ' replies were English only, and the teaching level is ' + lv + '/10. In your next reply, casually swap one word from what you are talking about for its Masri word, with the meaning the first time ("by the way, X means Y"). Do not announce a lesson and do not ask anyone to say it.'); }
+  if (L.engRun >= lim) { L.engRun = 0; tprob('Normal talk: ' + lim + ' replies in a row with no مصري (teaching level ' + lv + ')');
+    lNote('Your last ' + lim + ' replies were English only, and the teaching level is ' + lv + '/10. In your next reply, casually swap one word from what you are talking about for its مصري word, with the meaning the first time ("by the way, X means Y"). Do not announce a lesson and do not ask anyone to say it.'); }
+}
+
+/* ---- Arabic only: the model never sees or writes English-letter Arabic ---- */
+function arNorm(t) { return String(t || '').replace(/[\u064B-\u0652\u0640]/g, '').replace(/[أإآ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه').replace(/[^\u0621-\u064A ]/g, '').replace(/\s+/g, ' ').trim(); }
+function vocab() { var v = []; try { PWORDS.forEach(function (w) { v.push({ ar: w[0], tr: w[1] }); }); } catch (e) {} (D.phr || []).forEach(function (p) { v.push({ ar: p.ar, tr: p.tr }); });
+  Object.keys(S.words || {}).forEach(function (k) { var bk = S.words[k] || {}; Object.keys(bk).forEach(function (x) { if (bk[x].tr) v.push({ ar: bk[x].ar, tr: bk[x].tr }); }); }); return v; }
+function trFor(ar) { var n = arNorm(ar), hit = ''; if (!n) return ''; vocab().forEach(function (w) { if (!hit && arNorm(w.ar) === n) hit = w.tr; }); return hit; }
+function latinCheck(said) { /* Tut's words are transcribed from his audio: an English-letters Arabic word there means he said it the English way */
+  var low = ' ' + said.toLowerCase().replace(/[^a-z'ʿāēīōūḥṭḍṣẓ ]/g, ' ') + ' ', bad = [], seen = {};
+  vocab().forEach(function (w) { var t = String(w.tr || '').toLowerCase().replace(/[^a-z'ʿāēīōūḥṭḍṣẓ ]/g, ' ').trim(); if (t.length < 3 || seen[t] || /^(ya|la|da|di|el|ana|enta)$/.test(t)) return;
+    var plain = t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/['ʿ]/g, '');
+    if (low.indexOf(' ' + t + ' ') >= 0 || (plain.length > 3 && (' ' + low.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/['ʿ]/g, '') + ' ').indexOf(' ' + plain + ' ') >= 0)) { seen[t] = 1; bad.push(w); } });
+  if (/[āēīōūḥṭḍṣẓʿ]/.test(said)) bad.push({ ar: '', tr: (said.match(/\S*[āēīōūḥṭḍṣẓʿ]\S*/) || [''])[0] });
+  if (!bad.length) return;
+  tprob('Tut said Arabic the English way: ' + bad.map(function (w) { return '"' + w.tr + '"' + (w.ar ? ' (should be ' + w.ar + ')' : ''); }).join(', '));
+  lNote('You just said ' + bad.map(function (w) { return w.ar || 'an Arabic word'; }).join(', ') + ' with English pronunciation. Rule with no exception: every Arabic word comes from Arabic script only. Next time you use it, say it the Cairo way.');
 }
 /* ================= Voice ID: runs on this device only ================= */
 var V = { sess: null, loading: null, busy: false, utt: [], uttN: 0, voiced: 0, quiet: 0, noise: 0.004, done: false, lastEmb: null, lastEmbT: 0, last: null, rec: null, mel: null, win: null, TH: 0.42, MARGIN: 0.07, log: [] };
@@ -1663,12 +1679,12 @@ $('plforgot').addEventListener('click', function () {
 $('plchange').addEventListener('click', function () { PL.changing = true; PL.open = false; plockShow(); window.scrollTo(0, 0); });
 document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') { PL.open = false; PL.changing = false; if ($('v-par').classList.contains('on')) plockShow(); } });
 /* ---- Practice: one button, Tut runs it ---- */
-var POPEN = ["Oh, you are asking for a class now? Alright, alright. Tut academy is open.", "Wait, you WANT to practise? Who are you and what did you do with the kids?", "Fine. Lesson time. Nobody leaves until somebody says something in Arabic.", "Ooh, look at you, asking for homework. I am almost impressed.", "Practice? On purpose? OK, sit down, phones away, let's go.", "Alright, alright. School of Tut. Tuition is one word in Masri.", "A class, huh? Fine. But I am the teacher and the teacher is grumpy.", "You pressed the button. There is no going back now. Yalla.", "Okay, brain time. Let's see what stayed in there since last time.", "Practice mode. Finally, something useful. Let's go.", "Oh, so NOW you want Arabic. Good. Ears open.", "Alright, quick round. Short and painless. Mostly painless."];
+var POPEN = ["Oh, you are asking for a class now? Alright, alright. Tut academy is open.", "Wait, you WANT to practise? Who are you and what did you do with the kids?", "Fine. Lesson time. Nobody leaves until somebody says something in Arabic.", "Ooh, look at you, asking for homework. I am almost impressed.", "Practice? On purpose? OK, sit down, phones away, let's go.", "Alright, alright. School of Tut. Tuition is one word in مصري.", "A class, huh? Fine. But I am the teacher and the teacher is grumpy.", "You pressed the button. There is no going back now. يلا.", "Okay, brain time. Let's see what stayed in there since last time.", "Practice mode. Finally, something useful. Let's go.", "Oh, so NOW you want Arabic. Good. Ears open.", "Alright, quick round. Short and painless. Mostly painless."];
 function practiceOpener() { var used = S.popen || [], c = POPEN.map(function (x, i) { return i; }).filter(function (i) { return used.indexOf(i) < 0; }); if (!c.length) { used = []; c = POPEN.map(function (x, i) { return i; }); } var k = c[Math.floor(Math.random() * c.length)]; used.push(k); S.popen = used.slice(-8); save(); return POPEN[k]; }
 function practiceSend(viaText) {
   var seen = active().filter(function (k) { return V.seen && V.seen[k] && Date.now() - V.seen[k] < 60000; }).map(function (k) { return S.names[k]; });
   var who = seen.length ? ' The player is probably ' + seen.join(' or ') + '.' : ' Do not ask who is practising; just say "you" until the app tells you the name from their voice.';
-  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise Masri with them. Start straight away, out loud, following PRACTICE MODE. Open with this line (in your own voice, Masri sprinkles allowed): "' + (L.pOpen = practiceOpener()) + '" Then explain the game in one sentence: you give a word and its meaning, they say it back for 1 point, and later you test if they remember it for 5 points.' + who + ' Keep the opener to two short sentences, then go straight into the first word. The app coach will send each next step as a COACH message.' + (PC.cur ? '' : pcFirstStep());
+  var msg = 'PRACTICE BUTTON: the kids just tapped "Practice with Tut", so they are asking you right now to practise مصري with them. Start straight away, out loud, following PRACTICE MODE. Open with this line (in your own voice, مصري sprinkles allowed): "' + (L.pOpen = practiceOpener()) + '" Then explain the game in one sentence: you give a word and its meaning, they say it back for 1 point, and later you test if they remember it for 5 points.' + who + ' Keep the opener to two short sentences, then go straight into the first word. The app coach will send each next step as a COACH message.' + (PC.cur ? '' : pcFirstStep());
   if (!(L.ready && L.ws && L.ws.readyState === 1)) return false;
   if (!viaText && !L.noCC) L.ws.send(JSON.stringify({ clientContent: { turns: [{ role: 'user', parts: [{ text: msg }] }], turnComplete: true } }));
   else L.ws.send(JSON.stringify({ realtimeInput: { text: msg } }));
@@ -1789,15 +1805,15 @@ function pcBuild() {
 }
 function pcStepText(s) {
   var who = PC.kid || 'you (the player)';
-  if (s.type === 'new') return 'NEW WORD for ' + who + ': say "' + s.ar + '" clearly, the Cairo way, as written in Arabic ("' + s.tr + '" is only the screen spelling, do not read it out), and say out loud in English that it means "' + s.en + '". Then ask ' + who + ' to say it back. Call show_phrase for it.';
-  return 'MEMORY TEST for ' + who + ': ask "How do you say \'' + s.en + '\' in Masri?" Do NOT say the answer first. The answer is "' + s.ar + '" (screen spelling ' + s.tr + '; say it as written in Arabic). If they get it: 5 points. If not: give a hint, then the answer and its meaning, and move on.';
+  if (s.type === 'new') return 'NEW WORD for ' + who + ': say "' + s.ar + '" clearly, the Cairo way, and say out loud in English that it means "' + s.en + '". Then ask ' + who + ' to say it back. Call show_phrase for it.';
+  return 'MEMORY TEST for ' + who + ': ask "How do you say \'' + s.en + '\' in مصري?" Do NOT say the answer first. The answer is "' + s.ar + '". If they get it: 5 points. If not: give a hint, then the answer and its meaning, and move on.';
 }
 function pcSend(t) { PC.sentT = Date.now(); try { tlog('coach', t); } catch (e) {} if (L.ready && L.ws && L.ws.readyState === 1) L.ws.send(JSON.stringify({ realtimeInput: { text: 'COACH (practice step, follow it now): ' + t } })); PC.lastAct = Date.now(); }
 function pcNext(prefix) {
   if (!PR.on) return;
   if (PC.got && PC.got.who >= 0 && PC.got.who < 4 && !PC.awarded) { /* Tut forgot the points: the app gives them and Tut announces */
     var g = PC.got, pts = g.step.type === 'recall' ? 5 : 1; award(g.who, pts);
-    try { runTool({ name: 'record_word', args: { child: S.names[g.who], say_it: g.step.tr, arabic: g.step.ar, meaning: g.step.en, result: g.step.type === 'recall' ? 'recalled' : 'repeated' } }); } catch (e) {}
+    try { runTool({ name: 'record_word', args: { child: S.names[g.who], arabic: g.step.ar, meaning: g.step.en, result: g.step.type === 'recall' ? 'recalled' : 'repeated' } }); } catch (e) {}
     prefix = 'The app gave ' + S.names[g.who] + ' ' + pts + (pts > 1 ? ' points' : ' point') + ' for that, so announce it out loud first (POINTS style). Then: ' + (prefix || ''); }
   PC.got = null; PC.awarded = false;
   PC.cur = PC.q.shift(); PC.tries = 0; PC.nudges = 0; PC.meantOk = false; PC.waitNext = false;
@@ -1810,12 +1826,12 @@ function pcFirstStep() { PC.cur = PC.q.shift() || null; return PC.cur ? ' First 
 /* Tut finished talking */
 function coachTurn(said) {
   if (!PR.on) return; PC.lastAct = Date.now(); var t = String(said || '');
-  if (/\bmash?ree\b|\bmashri\b|\bmashry\b/i.test(t)) { tprob('Mispronounced Masri as "Mashri"'); } if (/\bmash?ree\b|\bmashri\b|\bmashry\b/i.test(t)) pcSend('Pronunciation fix: it is "Masri" with an S, like "mass-ree" (مصري), never "Mashri". Say it right next time.');
+  if (/\bmash?ree\b|\bmashri\b|\bmashry\b/i.test(t)) { tprob('Mispronounced مصري as "Mashri"'); } if (/\bmash?ree\b|\bmashri\b|\bmashry\b/i.test(t)) pcSend('Pronunciation fix: it is "مصري" with an S, like "mass-ree" (مصري), never "Mashri". Say it right next time.');
   var mentions = PC.cur && t.toLowerCase().indexOf(pcKey(PC.cur.tr).slice(0, 4)) >= 0;
   if (PC.cur && PC.cur.type === 'new' && !PC.meantOk && mentions && Date.now() - PR.t > 4000) {
     var en = PC.cur.en.toLowerCase().split(/[ ,]+/).filter(function (w) { return w.length > 2; });
     if (/means|meaning|in english/i.test(t) || en.some(function (w) { return t.toLowerCase().indexOf(w) >= 0; })) PC.meantOk = true;
-    else if (t.length > 3) { PC.meantOk = true; tprob('Practice: Tut did not say what "' + PC.cur.tr + '" means'); pcSend('You did not say what "' + PC.cur.tr + '" means. Say it now in one short line: "' + PC.cur.tr + ' means ' + PC.cur.en + '." Then let them say it back.'); return; }
+    else if (t.length > 3) { PC.meantOk = true; tprob('Practice: Tut did not say what "' + PC.cur.tr + '" means'); pcSend('You did not say what "' + PC.cur.ar + '" means. Say it now in one short line: "' + PC.cur.ar + ' means ' + PC.cur.en + '." Then let them say it back.'); return; }
   }
   if (PC.waitNext) pcNext();
 }
@@ -1890,7 +1906,7 @@ function coachSpot(txt) {
     if (PC.cur && pcKey(PC.cur.tr) === pcKey(w.tr) && now - (PC.sentT || 0) < 20000) return; /* just repeating the word Tut gave */
     var hit = (w.ar && t.indexOf(w.ar.replace(/[ً-ْ]/g, '')) >= 0) || (pcKey(w.tr).length > 3 && pcKey(tl).indexOf(pcKey(w.tr)) >= 0);
     if (hit && now - (PC.spotted[k + key] || 0) > 60000) { PC.spotted[k + key] = now; try { tlog('note', S.names[k] + ' used "' + w.tr + '" on their own'); } catch (e) {}
-      pcSend(S.names[k] + ' just used "' + w.tr + '" (' + w.en + ') on their own, from memory. That is a recall: call record_word with result recalled, give 5 points, and say it out loud.'); } });
+      pcSend(S.names[k] + ' just used "' + w.ar + '" (' + w.en + ') on their own, from memory. That is a recall: call record_word with result recalled, give 5 points, and say it out loud.'); } });
 }
 
 /* ---- how Tut says names ---- */
